@@ -18,8 +18,18 @@ class TcpConnection(
     private val vpnOutput: java.io.FileOutputStream,
     private val settings: DpiSettings
 ) {
+    companion object {
+        // Sabit Ayarlar (Artık DpiSettings'den çekilmiyor)
+        private const val MAX_CONNECTIONS = 512
+        private const val CONNECT_TIMEOUT = 15000 // 15 sn
+        private const val READ_TIMEOUT = 30000    // 30 sn
+        private const val WINDOW_SIZE = 65535
+        private const val KEEP_ALIVE = true
+    }
+
     private val sessions = ConcurrentHashMap<String, TcpSession>()
-    private val executor: ExecutorService = Executors.newFixedThreadPool(settings.maxConnections.coerceIn(32, 512))
+    // maxConnections hatasını düzeltmek için sabit değer kullandık
+    private val executor: ExecutorService = Executors.newFixedThreadPool(MAX_CONNECTIONS)
     
     @Volatile private var isRunning = true
     private val bytesIn = AtomicLong(0)
@@ -82,12 +92,14 @@ class TcpConnection(
         try {
             val socket = Socket()
             vpnService.protect(socket)
+            
+            // Ayarlar artık sabitlerden okunuyor
             socket.tcpNoDelay = settings.enableTcpNodelay
-            socket.soTimeout = settings.readTimeout
-            socket.keepAlive = settings.keepAlive
+            socket.soTimeout = READ_TIMEOUT
+            socket.keepAlive = KEEP_ALIVE
             socket.setSoLinger(true, 0)
             
-            socket.connect(InetSocketAddress(session.dstIp, session.dstPort), settings.connectionTimeout)
+            socket.connect(InetSocketAddress(session.dstIp, session.dstPort), CONNECT_TIMEOUT)
             
             if (!isRunning || session.state == SessionState.CLOSED) {
                 socket.close()
@@ -197,7 +209,7 @@ class TcpConnection(
                     srcPort = session.dstPort, dstPort = session.srcPort,
                     seqNum = session.mySeqNum, ackNum = session.myAckNum,
                     flags = Packet.TCP_PSH or Packet.TCP_ACK,
-                    windowSize = settings.windowSize,
+                    windowSize = WINDOW_SIZE, // Düzeltildi
                     payload = data.copyOfRange(offset, offset + chunkSize)
                 )
                 writeToVpn(packet)
@@ -212,7 +224,9 @@ class TcpConnection(
             srcIp = session.dstIp, dstIp = session.srcIp,
             srcPort = session.dstPort, dstPort = session.srcPort,
             seqNum = session.mySeqNum, ackNum = session.myAckNum,
-            flags = flags, windowSize = settings.windowSize, payload = ByteArray(0)
+            flags = flags, 
+            windowSize = WINDOW_SIZE, // Düzeltildi
+            payload = ByteArray(0)
         )
         writeToVpn(packet)
     }

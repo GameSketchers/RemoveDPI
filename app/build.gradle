@@ -13,24 +13,13 @@ android {
         minSdk 24
         targetSdk 35
         versionCode 1
-        versionName '1.0.0-beta.0'
-    }
-    
-    signingConfigs {
-        release {
-            storeFile file("dosyanız.jks") // Keystore dosyanın adı
-            storePassword "şifreniz" // Şifreniz
-            keyAlias "anahtarınız" // Anahtarınız
-            keyPassword "şifreniz" // Şifreniz
-        }
+        versionName '1.0.0-beta.1'
     }
 
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            
-            signingConfig signingConfigs.release // Şifre ve dosya yoktur sizin yüklemeniz gerekir
         }
     }
 

@@ -159,7 +159,7 @@ fun HomeScreen(
                 text = when (vpnState) {
                     VpnState.CONNECTED -> "Tüm siteler erişilebilir"
                     VpnState.CONNECTING -> "Lütfen bekleyin"
-                    VpnState.DISCONNECTED -> "DPI koruması devre dışı"
+                    VpnState.DISCONNECTED -> "Remove DPI devre dışı"
                     VpnState.ERROR -> "Ayarları kontrol edin"
                 },
                 style = MaterialTheme.typography.bodyMedium,

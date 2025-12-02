@@ -13,7 +13,7 @@
     <a href="https://kotlinlang.org">
       <img src="https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
     </a>
-    <a href="https://github.com/anonimbiri-IsBack/RemoveDPI/releases">
+    <a href="https://github.com/GameSketchers/RemoveDPI/releases">
       <img src="https://img.shields.io/badge/Release-Beta_v1.0-blue?style=for-the-badge&logo=rocket&logoColor=white" alt="Release" />
     </a>
     <a href="LICENSE">
@@ -53,9 +53,9 @@ Bu araç, Türkiye'deki internet servis sağlayıcılarının uyguladığı **DP
 ## 📸 Ekran Görüntüleri
 
 <div align="center">
-  <img src="screenshots/1.png" width="30%" alt="Ana Ekran" style="border-radius: 10px; margin: 10px;" />
-  <img src="screenshots/2.png" width="30%" alt="Ayarlar" style="border-radius: 10px; margin: 10px;" />
-  <img src="screenshots/3.png" width="30%" alt="Loglar" style="border-radius: 10px; margin: 10px;" />
+  <img src="screenshots/1.jpg" width="30%" alt="Ana Ekran" style="border-radius: 10px; margin: 10px;" />
+  <img src="screenshots/2.jpg" width="30%" alt="Ayarlar" style="border-radius: 10px; margin: 10px;" />
+  <img src="screenshots/3.jpg" width="30%" alt="Loglar" style="border-radius: 10px; margin: 10px;" />
 </div>
 
 ---

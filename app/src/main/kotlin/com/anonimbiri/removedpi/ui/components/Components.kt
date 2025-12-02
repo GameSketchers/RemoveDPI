@@ -159,7 +159,7 @@ fun ConnectionStatusCard(
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = when (vpnState) {
-                        VpnState.CONNECTED -> "Bağlı - Korumalı"
+                        VpnState.CONNECTED -> "Bağlı"
                         VpnState.CONNECTING -> "Bağlanıyor..."
                         VpnState.DISCONNECTED -> "Bağlı Değil"
                         VpnState.ERROR -> "Hata"

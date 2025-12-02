@@ -1,5 +1,6 @@
 package com.anonimbiri.removedpi.ui.screens
 
+import android.content.pm.PackageManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,6 +9,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -22,25 +24,32 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.painterResource
 import com.anonimbiri.removedpi.data.*
 import com.anonimbiri.removedpi.vpn.BypassVpnService
 import com.anonimbiri.removedpi.vpn.LogManager
+import com.anonimbiri.removedpi.R
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToWhitelist: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val repository = remember { SettingsRepository(context) }
     val uriHandler = LocalUriHandler.current
     
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState()
-    )
+    val appVersion = remember {
+        try {
+            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            "v${pInfo.versionName}"
+        } catch (e: Exception) { "NaN" }
+    }
     
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     var settings by remember { mutableStateOf(DpiSettings()) }
     
     LaunchedEffect(Unit) {
@@ -62,26 +71,10 @@ fun SettingsScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { 
-                    Text(
-                        "Ayarlar",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Geri"
-                        )
-                    }
-                },
+                title = { Text("Ayarlar", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Geri") } },
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -93,18 +86,12 @@ fun SettingsScreen(
         ) {
             item { Spacer(modifier = Modifier.height(8.dp)) }
 
-            // === 1. BYPASS STRATEJİSİ ===
+            // === 1. BYPASS YÖNTEMİ ===
             item {
-                SettingsSection(title = "Bypass Stratejisi") {
+                SettingsSection(title = "Bypass Yöntemi") {
                     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                        Text(
-                            "Yöntem (Desync Method)",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(DesyncMethod.SPLIT, DesyncMethod.DISORDER, DesyncMethod.FAKE).forEach { method ->
+                            DesyncMethod.entries.forEach { method ->
                                 FilterChip(
                                     selected = settings.desyncMethod == method,
                                     onClick = { updateSettings(settings.copy(desyncMethod = method)) },
@@ -114,268 +101,146 @@ fun SettingsScreen(
                             }
                         }
                     }
-
-                    SettingsSwitchRow(
-                        icon = Icons.Default.Https,
-                        title = "HTTPS Desync",
-                        subtitle = "Güvenli bağlantıları parçalar (SNI)",
-                        checked = settings.desyncHttps,
-                        onCheckedChange = { updateSettings(settings.copy(desyncHttps = it)) }
-                    )
-                    
-                    SettingsSwitchRow(
-                        icon = Icons.Default.Http,
-                        title = "HTTP Desync",
-                        subtitle = "Şifresiz siteleri parçalar",
-                        checked = settings.desyncHttp,
-                        onCheckedChange = { updateSettings(settings.copy(desyncHttp = it)) }
-                    )
+                    SettingsSwitchRow(Icons.Default.Https, "HTTPS Desync", "Güvenli bağlantıları (TLS) işle", settings.desyncHttps) { updateSettings(settings.copy(desyncHttps = it)) }
+                    SettingsSwitchRow(Icons.Default.Http, "HTTP Desync", "Şifresiz bağlantıları işle", settings.desyncHttp) { updateSettings(settings.copy(desyncHttp = it)) }
                 }
             }
-
-            // === 2. İNCE AYARLAR ===
+            
+            // === 2. GELİŞMİŞ AYARLAR ===
             item {
-                SettingsSection(title = "İnce Ayarlar") {
-                    SettingsSwitchRow(
-                        icon = Icons.Default.ContentCut,
-                        title = "Kör Bölme (Blind Split)",
-                        subtitle = "Paketleri analiz etmeden ilk byte'ı böler",
-                        checked = !settings.splitTlsRecordAtSni,
-                        onCheckedChange = { isBlind -> 
-                            updateSettings(settings.copy(
-                                splitTlsRecordAtSni = !isBlind,
-                                splitTlsRecord = true,
-                                tlsRecordSplitPosition = 1
-                            )) 
+                SettingsSection(title = "Gelişmiş") {
+                    // Split/Fake için
+                    if (settings.desyncMethod != DesyncMethod.DISORDER) {
+                        SettingsSliderRow("Split Pozisyonu", settings.firstPacketSize.toFloat(), 1f..10f, { updateSettings(settings.copy(firstPacketSize = it.toInt())) }, "${settings.firstPacketSize}. byte")
+                    }
+                    
+                    // Disorder için
+                    if (settings.desyncMethod == DesyncMethod.DISORDER) {
+                        SettingsSliderRow("Parça Sayısı", settings.splitCount.toFloat(), 2f..20f, { updateSettings(settings.copy(splitCount = it.toInt())) }, "${settings.splitCount}")
+                    }
+                    
+                    // Fake için Hex
+                    if (settings.desyncMethod == DesyncMethod.FAKE) {
+                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                            Text("Fake Hex Verisi", style = MaterialTheme.typography.bodyMedium)
+                            OutlinedTextField(
+                                value = settings.fakeHex,
+                                onValueChange = { updateSettings(settings.copy(fakeHex = it)) },
+                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                                singleLine = true
+                            )
                         }
-                    )
+                    }
 
-                    SettingsSliderRow(
-                        title = "Gecikme (Split Delay)",
-                        value = settings.splitDelay.toFloat(),
-                        valueRange = 0f..50f,
-                        onValueChange = { updateSettings(settings.copy(splitDelay = it.toLong())) },
-                        valueText = "${settings.splitDelay} ms"
-                    )
-
-                    SettingsSwitchRow(
-                        icon = Icons.Default.TextFields,
-                        title = "Host Karıştırma",
-                        subtitle = "Host: site.com -> hoSt: site.com",
-                        checked = settings.mixHostCase,
-                        onCheckedChange = { updateSettings(settings.copy(mixHostCase = it)) }
-                    )
+                    SettingsSliderRow("Gecikme (ms)", settings.splitDelay.toFloat(), 0f..50f, { updateSettings(settings.copy(splitDelay = it.toLong())) }, "${settings.splitDelay}")
+                    SettingsSwitchRow(Icons.Default.TextFields, "Host Karıştırma", "Host -> hoSt", settings.mixHostCase) { updateSettings(settings.copy(mixHostCase = it)) }
                 }
             }
 
-            // === 3. DNS VE BAĞLANTI (ADBLOCK DNS'LERİ EKLENDİ) ===
+            // === 3. DNS ve BAĞLANTI ===
             item {
                 SettingsSection(title = "DNS ve Bağlantı") {
-                    SettingsSwitchRow(
-                        icon = Icons.Default.Dns,
-                        title = "Özel DNS Kullan",
-                        subtitle = "Reklam engelleme veya özel DNS için",
-                        checked = settings.customDnsEnabled,
-                        onCheckedChange = { updateSettings(settings.copy(customDnsEnabled = it)) }
-                    )
-                    
+                    SettingsSwitchRow(Icons.Default.Dns, "Özel DNS", "Reklam engelleme ve gizlilik", settings.customDnsEnabled) { updateSettings(settings.copy(customDnsEnabled = it)) }
                     if (settings.customDnsEnabled) {
-                        SingleChoiceRow(
-                            selected = settings.customDns,
-                            options = listOf(
-                                "94.140.14.14" to "AdGuard",   // AdGuard Default
-                                "76.76.2.2" to "Control D",    // Control D (Malware + Ads)
-                                "194.242.2.2" to "Mullvad"     // Mullvad (Adblock)
-                            ),
-                            onSelect = { dns ->
-                                val dns2 = when(dns) {
-                                    "94.140.14.14" -> "94.140.15.15" // AdGuard Secondary
-                                    "76.76.2.2" -> "76.76.10.2"      // Control D Secondary
-                                    "194.242.2.2" -> "194.242.2.3"   // Mullvad Secondary
-                                    else -> "8.8.4.4"                // Fallback (Google)
-                                }
-                                updateSettings(settings.copy(customDns = dns, customDns2 = dns2))
-                            }
-                        )
-                        
-                        Text(
-                            text = "Seçilen DNS reklamları ve izleyicileri engeller.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 16.dp, bottom = 12.dp)
-                        )
+                        SingleChoiceRow(settings.customDns, listOf("94.140.14.14" to "AdGuard", "76.76.2.2" to "Control D", "1.1.1.1" to "Cloudflare")) { 
+                            val dns2 = when(it) { "94.140.14.14"->"94.140.15.15" "76.76.2.2"->"76.76.10.2" else->"1.0.0.1" }
+                            updateSettings(settings.copy(customDns = it, customDns2 = dns2)) 
+                        }
                     }
-
-                    SettingsSwitchRow(
-                        icon = Icons.Outlined.Speed,
-                        title = "QUIC Engelle",
-                        subtitle = "YouTube/Instagram yavaşlatmasını çözer",
-                        checked = settings.blockQuic,
-                        onCheckedChange = { updateSettings(settings.copy(blockQuic = it)) }
-                    )
+                    SettingsSwitchRow(Icons.Outlined.Speed, "QUIC Engelle", "YouTube hızlandırma", settings.blockQuic) { updateSettings(settings.copy(blockQuic = it)) }
+                    SettingsSwitchRow(Icons.Outlined.Bolt, "TCP NoDelay", "Paketleri bekletmeden gönder", settings.enableTcpNodelay) { updateSettings(settings.copy(enableTcpNodelay = it)) }
                 }
             }
 
-            // === 4. SİSTEM ===
+            // === 4. BEYAZ LİSTE ===
+            item {
+                SettingsSection(title = "İstisnalar") {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onNavigateToWhitelist() }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.tertiaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.VerifiedUser, null, tint = MaterialTheme.colorScheme.tertiary)
+                        }
+                        
+                        Spacer(modifier = Modifier.width(16.dp))
+                        
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Beyaz Liste", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                            Text("Harici tutmak istediğiniz siteler", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+
+            // === 5. SİSTEM ===
             item {
                 SettingsSection(title = "Sistem") {
-                    SettingsSwitchRow(
-                        icon = Icons.Default.BugReport,
-                        title = "Loglama",
-                        subtitle = "Sorun giderirken açın",
-                        checked = settings.enableLogs,
-                        onCheckedChange = { updateSettings(settings.copy(enableLogs = it)) }
-                    )
-                    
-                    if (settings.enableLogs) {
-                         SettingsSwitchRow(
-                            icon = Icons.Outlined.List,
-                            title = "Detaylı Log",
-                            subtitle = "Tüm paket hareketlerini göster",
-                            checked = settings.verboseLogs,
-                            onCheckedChange = { updateSettings(settings.copy(verboseLogs = it)) }
-                        )
-                    }
+                    SettingsSwitchRow(Icons.Default.BugReport, "Loglama", "Hata ayıklama kayıtları", settings.enableLogs) { updateSettings(settings.copy(enableLogs = it)) }
                 }
             }
             
-            // === 5. SIFIRLA ===
+            // === 6. SIFIRLA ===
             item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    TextButton(
-                        onClick = { updateSettings(DpiSettings()) },
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Varsayılan Ayarlara Dön")
-                    }
+                Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                    TextButton(onClick = { updateSettings(DpiSettings()) }) { Text("Varsayılan Ayarlara Dön", color = MaterialTheme.colorScheme.error) }
                 }
             }
-
-            // === 6. HAKKINDA ===
+            
+            // === 7. HAKKINDA ===
             item {
                 SettingsSection(title = "Hakkında") {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { uriHandler.openUri("https://github.com/anonimbiri-IsBack") }
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Code,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = "Geliştirici",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = "anonimbiri",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                    Row(modifier = Modifier.fillMaxWidth().clickable { uriHandler.openUri("https://github.com/anonimbiri-IsBack") }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        // Geliştirici (Primary)
+                        Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Outlined.Code, null, tint = MaterialTheme.colorScheme.primary)
                         }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text("Geliştirici: anonimbiri", style = MaterialTheme.typography.bodyLarge)
                     }
-                    
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { uriHandler.openUri("https://github.com/GameSketchers/RemoveDPI") }
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Link,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = "Orijinal Kaynak",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = "GameSketchers/RemoveDPI",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                    Row(modifier = Modifier.fillMaxWidth().clickable { uriHandler.openUri("https://github.com/GameSketchers/RemoveDPI") }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        // Github (Secondary - Artık renkli)
+                        Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.secondaryContainer), contentAlignment = Alignment.Center) {
+                            Icon(painter = painterResource(id = R.drawable.ic_github), null, tint = MaterialTheme.colorScheme.secondary)
                         }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text("Github Açık Kaynak", style = MaterialTheme.typography.bodyLarge)
                     }
                 }
             }
             
-            item { Spacer(modifier = Modifier.height(32.dp)) }
+            // === 8. SÜRÜM BİLGİSİ ===
+            item {
+                Box(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp), contentAlignment = Alignment.Center) {
+                    Text("Remove DPI • $appVersion", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                }
+            }
         }
     }
 }
 
-// === COMPOSABLES ===
+// === HELPER COMPOSABLES ===
 
-@Composable
-fun SettingsSection(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
-        )
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            ),
-            shape = RoundedCornerShape(24.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(vertical = 8.dp),
-                content = content
-            )
-        }
+@Composable fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp, bottom = 8.dp))
+        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)), shape = RoundedCornerShape(24.dp)) { Column(modifier = Modifier.padding(vertical = 8.dp), content = content) }
     }
 }
 
-@Composable
-fun SettingsSwitchRow(
-    icon: ImageVector,
-    title: String,
-    subtitle: String? = null,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .toggleable(
-                value = checked,
-                onValueChange = onCheckedChange
-            )
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+@Composable fun SettingsSwitchRow(icon: ImageVector, title: String, subtitle: String? = null, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth().toggleable(value = checked, onValueChange = onCheckedChange).padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -383,100 +248,30 @@ fun SettingsSwitchRow(
                 .background(if(checked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if(checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Icon(icon, null, tint = if(checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
         }
         
         Spacer(modifier = Modifier.width(16.dp))
-        
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
-            if (subtitle != null) {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+        Column(modifier = Modifier.weight(1f)) { 
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+            if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        
-        Switch(
-            checked = checked,
-            onCheckedChange = null
-        )
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
 
-@Composable
-fun SettingsSliderRow(
-    title: String,
-    value: Float,
-    valueRange: ClosedFloatingPointRange<Float>,
-    onValueChange: (Float) -> Unit,
-    valueText: String
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = valueText,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
+@Composable fun SettingsSliderRow(title: String, value: Float, range: ClosedFloatingPointRange<Float>, onChange: (Float)->Unit, text: String) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) { 
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+            Text(text, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) 
         }
-        
-        Slider(
-            value = value,
-            onValueChange = onValueChange,
-            valueRange = valueRange,
-            steps = 0,
-            modifier = Modifier.padding(top = 4.dp)
-        )
+        Slider(value = value, onValueChange = onChange, valueRange = range)
     }
 }
 
-@Composable
-fun SingleChoiceRow(
-    selected: String,
-    options: List<Pair<String, String>>,
-    onSelect: (String) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        options.forEach { (value, label) ->
-            FilterChip(
-                selected = selected == value,
-                onClick = { onSelect(value) },
-                label = { Text(label) },
-                leadingIcon = if (selected == value) {
-                    { Icon(Icons.Default.Check, null, modifier = Modifier.size(16.dp)) }
-                } else null,
-                modifier = Modifier.weight(1f)
-            )
-        }
+@Composable fun SingleChoiceRow(selected: String, options: List<Pair<String, String>>, onSelect: (String) -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        options.forEach { (val_, lbl) -> FilterChip(selected = selected == val_, onClick = { onSelect(val_) }, label = { Text(lbl) }, modifier = Modifier.weight(1f)) }
     }
 }

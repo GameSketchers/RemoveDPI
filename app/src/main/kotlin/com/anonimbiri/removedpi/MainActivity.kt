@@ -20,6 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import com.anonimbiri.removedpi.ui.screens.HomeScreen
 import com.anonimbiri.removedpi.ui.screens.LogScreen
 import com.anonimbiri.removedpi.ui.screens.SettingsScreen
+import com.anonimbiri.removedpi.ui.screens.WhitelistScreen
 import com.anonimbiri.removedpi.ui.theme.RemoveDPITheme
 
 class MainActivity : ComponentActivity() {
@@ -32,23 +33,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
-        // Request notification permission for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
         
         setContent {
             RemoveDPITheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     RemoveDpiApp()
                 }
             }
@@ -60,34 +53,30 @@ class MainActivity : ComponentActivity() {
 fun RemoveDpiApp() {
     val navController = rememberNavController()
     
-    NavHost(
-        navController = navController,
-        startDestination = "home"
-    ) {
+    NavHost(navController = navController, startDestination = "home") {
         composable("home") {
             HomeScreen(
-                onNavigateToSettings = {
-                    navController.navigate("settings")
-                },
-                onNavigateToLogs = {
-                    navController.navigate("logs")
-                }
+                onNavigateToSettings = { navController.navigate("settings") },
+                onNavigateToLogs = { navController.navigate("logs") }
             )
         }
         
         composable("settings") {
             SettingsScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToWhitelist = { navController.navigate("whitelist") }
+            )
+        }
+        
+        composable("whitelist") {
+            WhitelistScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         
         composable("logs") {
             LogScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }
