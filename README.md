@@ -55,7 +55,8 @@ Bu araç, Türkiye'deki internet servis sağlayıcılarının uyguladığı **DP
 <div align="center">
   <img src="screenshots/1.jpg" width="30%" alt="Ana Ekran" style="border-radius: 10px; margin: 10px;" />
   <img src="screenshots/2.jpg" width="30%" alt="Ayarlar" style="border-radius: 10px; margin: 10px;" />
-  <img src="screenshots/3.jpg" width="30%" alt="Loglar" style="border-radius: 10px; margin: 10px;" />
+  <img src="screenshots/3.jpg" width="30%" alt="İstisnalar" style="border-radius: 10px; margin: 10px;" />
+  <img src="screenshots/4.jpg" width="30%" alt="Loglar" style="border-radius: 10px; margin: 10px;" />
 </div>
 
 ---
