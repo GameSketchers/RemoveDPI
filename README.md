@@ -1,107 +1,117 @@
 <div align="center">
 
-  <h1>🛡️ RemoveDPI for Android</h1>
+  <!-- App Logo -->
+  <img src="app/src/main/playstore-icon.png" width="150" alt="RemoveDPI Logo" />
 
+  <h1>🛡️ RemoveDPI</h1>
+  
+  <p><strong>Android için DPI Bypass Aracı</strong></p>
+
+  <!-- Dynamic Badges -->
   <p>
-    <strong>DPI (Derin Paket İnceleme) tabanlı sansürleri ve hız kısıtlamalarını aşın.</strong>
+    <a href="https://github.com/GameSketchers/RemoveDPI/releases/latest">
+      <img src="https://img.shields.io/github/v/release/GameSketchers/RemoveDPI?style=for-the-badge&logo=github&logoColor=white&label=Version&color=ff0099" alt="Version" />
+    </a>
+    <a href="https://github.com/GameSketchers/RemoveDPI/releases">
+      <img src="https://img.shields.io/github/downloads/GameSketchers/RemoveDPI/total?style=for-the-badge&logo=download&logoColor=white&label=Downloads&color=ff0099" alt="Downloads" />
+    </a>
+    <a href="https://github.com/GameSketchers/RemoveDPI/stargazers">
+      <img src="https://img.shields.io/github/stars/GameSketchers/RemoveDPI?style=for-the-badge&logo=star&logoColor=white&label=Stars&color=ff0099" alt="Stars" />
+    </a>
   </p>
 
   <p>
     <a href="https://www.android.com">
-      <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android" />
+      <img src="https://img.shields.io/badge/Android_9+-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android" />
     </a>
     <a href="https://kotlinlang.org">
-      <img src="https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
+      <img src="https://img.shields.io/badge/Kotlin-7F52FF?style=flat-square&logo=kotlin&logoColor=white" alt="Kotlin" />
     </a>
-    <a href="https://github.com/GameSketchers/RemoveDPI/releases">
-      <img src="https://img.shields.io/badge/Release-Beta_v1.0-blue?style=for-the-badge&logo=rocket&logoColor=white" alt="Release" />
+    <a href="https://github.com/GameSketchers/RemoveDPI/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/GameSketchers/RemoveDPI?style=flat-square&color=red" alt="License" />
     </a>
-    <a href="LICENSE">
-      <img src="https://img.shields.io/badge/License-MIT-red?style=for-the-badge&logo=law&logoColor=white" alt="License" />
-    </a>
+    <img src="https://img.shields.io/badge/Root-Not_Required-success?style=flat-square" alt="No Root" />
   </p>
 
-  <p>
-    <a href="#-neleri-çözer">Özellikler</a> •
-    <a href="#-kurulum-ve-kullanım">Kurulum</a> •
-    <a href="#-nasıl-çalışır">Çalışma Mantığı</a> •
-    <a href="https://github.com/GameSketchers/RemoveDPI/releases">📥 Hemen İndir</a>
-  </p>
+  <br />
+
+  <a href="https://github.com/GameSketchers/RemoveDPI/releases/latest">
+    <img src="https://img.shields.io/badge/⬇_APK_İNDİR-ff0099?style=for-the-badge&logoColor=white" alt="Download" />
+  </a>
 
 </div>
 
----
+<br />
 
 > [!IMPORTANT]
-> **Bu uygulama bir VPN değildir.** > IP adresinizi gizlemez veya verilerinizi şifrelemez. Sadece internet sağlayıcınızın (ISP) paketlerinizi analiz etmesini engelleyerek yasaklı sitelere girmenizi sağlar. **Hız düşüşü yaşatmaz.**
+> Bu bir VPN değildir. IP gizlemez, veri şifrelemez. ISP'nin DPI analizini atlatarak engelli sitelere erişim sağlar. **Hız kaybı yaşatmaz.**
 
 ---
 
-## ⚡ Neleri Çözer?
+## ⚡ Özellikler
 
-Bu araç, Türkiye'deki internet servis sağlayıcılarının uyguladığı **DPI (Deep Packet Inspection)** sistemlerini atlatmak için tasarlanmıştır.
-
-| Özellik | Açıklama |
-| :--- | :--- |
-| 🚫 **Erişim Engelleri** | Discord, Reddit ve diğer yasaklı servislere VPN'siz giriş sağlar. |
-| 🚀 **Hız Kısıtlamaları** | YouTube, Instagram ve X (Twitter) üzerindeki yapay yavaşlatmayı (Throttling) kaldırır. |
-| ⚡ **Sıfır Hız Kaybı** | Uzak bir sunucuya bağlanmadığı için pinginiz artmaz, hızınız düşmez. |
-| 🔓 **Root Gerektirmez** | Herhangi bir Android cihazda (Android 9+) root yetkisi olmadan çalışır. |
+| | |
+|:---|:---|
+| 🚫 **Engel Atlatma** | Discord, Reddit ve yasaklı servislere VPN'siz erişim |
+| 🚀 **Throttle Kaldırma** | YouTube, Instagram, X üzerindeki hız kısıtlamalarını devre dışı bırakır |
+| ⚡ **Sıfır Gecikme** | Uzak sunucuya bağlanmaz, ping artışı olmaz |
+| 🔓 **Root Gereksiz** | Android 9+ tüm cihazlarda çalışır |
 
 ---
 
 ## 📸 Ekran Görüntüleri
 
 <div align="center">
-  <img src="screenshots/1.jpg" width="30%" alt="Ana Ekran" style="border-radius: 10px; margin: 10px;" />
-  <img src="screenshots/2.jpg" width="30%" alt="Ayarlar" style="border-radius: 10px; margin: 10px;" />
-  <img src="screenshots/3.jpg" width="30%" alt="İstisnalar" style="border-radius: 10px; margin: 10px;" />
-  <img src="screenshots/4.jpg" width="30%" alt="Loglar" style="border-radius: 10px; margin: 10px;" />
+  <img src="screenshots/1.jpg" width="24%" />
+  <img src="screenshots/2.jpg" width="24%" />
+  <img src="screenshots/3.jpg" width="24%" />
+  <img src="screenshots/4.jpg" width="24%" />
 </div>
+
+---
+
+## 🎨 Temalar
+
+`Material You` · `Anime` · `AMOLED`
 
 ---
 
 ## 🛠️ Nasıl Çalışır?
 
-RemoveDPI, Android'in yerel `VpnService` özelliğini kullanarak trafiği cihaz içinde yönlendirir ve paketleri modifiye eder.
-
 <details>
-<summary>⚙️ <strong>Teknik Detayları Görmek İçin Tıklayın</strong></summary>
-<br>
+<summary><strong>Teknik Detaylar</strong></summary>
+<br />
 
-1.  **TCP Fragmantasyonu (Blind Split):** HTTPS bağlantısı kurulurken gönderilen `ClientHello` paketini parçalara ayırır (örneğin ilk baytı koparır). DPI cihazları bu parçalanmış paketi anlamlandıramaz ve "bu site yasaklı değil" diyerek geçişe izin verir.
-
-2.  **QUIC / UDP Engelleme:**
-    Google ve Meta servislerinin (YouTube, Instagram) kullandığı UDP 443 portunu (QUIC protokolü) engeller. Tarayıcıyı ve uygulamaları TCP kullanmaya zorlar. TCP, manipüle edilmesi (DPI atlatılması) en kolay protokoldür.
+- **TCP Fragmentation:** `ClientHello` paketini parçalayarak DPI'ın analiz etmesini engeller
+- **QUIC Block:** UDP 443 portunu engelleyerek trafiği TCP'ye zorlar
 
 </details>
 
 ---
 
-## 📥 Kurulum ve Kullanım
+## 📥 Kurulum
 
-1.  **İndir:** En son sürümü [Releases Sayfasından](https://github.com/GameSketchers/RemoveDPI/releases) indirin.
-2.  **Yükle:** İndirdiğiniz `.apk` dosyasını kurun.
-3.  **Başlat:** Uygulamayı açın ve devasa **"BAŞLAT"** butonuna basın.
-4.  **İzin Ver:** Android "VPN Bağlantı İsteği" sorarsa onaylayın.
-
-> **İpucu:** Uygulama varsayılan olarak "Türkiye Modu" ayarlarıyla gelir. Ekstra ayar yapmanıza gerek yoktur. Eğer bağlanamazsanız ayarlardan **"DPI Bypass Mode: SPLIT"** seçeneğini kontrol edin.
+1. [Releases](https://github.com/GameSketchers/RemoveDPI/releases/latest) sayfasından APK indir
+2. Yükle ve aç
+3. **BAŞLAT** butonuna bas
+4. VPN iznini onayla
 
 ---
 
-## 🤝 Teşekkürler & Kredi
+## 🤝 Krediler
 
-Bu proje, internet özgürlüğü için çalışan devlerin omuzlarında yükselmektedir:
+| Proje | Katkı |
+|:---|:---|
+| [GoodbyeDPI](https://github.com/ValdikSS/GoodbyeDPI) | Orijinal konsept |
+| [GoodbyeDPI-Turkey](https://github.com/cagritaskn/GoodbyeDPI-Turkey) | TR konfigürasyonları |
 
-* **GoodbyeDPI (ValdikSS):** Orijinal PC mantığı ve ilham kaynağı.
-* **GoodbyeDPI-Turkey (cagritaskn):** Türkiye'ye özel konfigürasyonlar.
-* **Geliştirici:** [Anonimbiri](https://github.com/anonimbiri-IsBack)
+<div align="center">
+  <br />
+  <strong>Geliştirici:</strong> <a href="https://github.com/anonimbiri-IsBack">@Anonimbiri</a>
+</div>
 
 ---
 
 ## ⚖️ Yasal Uyarı
 
-```text
-Bu yazılım, ağ trafiği analizi ve sansür yöntemlerinin teknik incelemesi amacıyla 
-EĞİTİM AMAÇLI geliştirilmiştir. Kullanıcılar, bu yazılımı kullanırken bulundukları 
-ülkenin yasalarına uymakla yükümlüdür. Geliştirici, kötüye kullanımdan sorumlu değildir.
+Bu yazılım **eğitim amaçlı** geliştirilmiştir. Kullanıcılar bulundukları ülkenin yasalarına uymakla yükümlüdür. Geliştirici kötüye kullanımdan sorumlu tutulamaz.
