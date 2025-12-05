@@ -1,7 +1,6 @@
 package com.anonimbiri.removedpi.vpn
 
 import android.net.VpnService
-import android.util.Log
 import com.anonimbiri.removedpi.data.DpiSettings
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -17,7 +16,6 @@ class UdpConnection(
     private val settings: DpiSettings
 ) {
     companion object {
-        private const val TAG = "UdpConnection"
         private const val TIMEOUT = 30000
         private const val MAX_PACKET_SIZE = 65535
     }
@@ -44,8 +42,11 @@ class UdpConnection(
         val payload = packet.getPayload()
         if (payload.isEmpty()) return
         
-        // QUIC Engelleme (YouTube/Instagram için kritik)
+        // QUIC Engelleme Logu
         if (settings.blockQuic && packet.destinationPort == 443) {
+            // Sürekli spam olmasın diye her paketi loglamayabilirsin ama
+            // kullanıcı "QUIC Engelle" çalışıyor mu görmek isterse bu log iyidir.
+            LogManager.w("QUIC Paketi Engellendi (UDP 443) -> ${packet.destinationAddress.hostAddress}")
             return
         }
         
@@ -61,12 +62,17 @@ class UdpConnection(
                 packet.destinationAddress
             }
             
+            // DNS Logu
+            if (packet.isDns) {
+                LogManager.i("DNS Sorgusu → $destIp")
+            }
+            
             val destPacket = DatagramPacket(payload, payload.size, destIp, packet.destinationPort)
             session.socket.send(destPacket)
             bytesOut.addAndGet(payload.size.toLong())
             
         } catch (e: Exception) {
-            Log.e(TAG, "UDP process error: ${e.message}")
+            LogManager.e("UDP Hatası: ${e.message}")
         }
     }
     
@@ -126,7 +132,9 @@ class UdpConnection(
                 packet.get(packetData)
                 vpnOutput.write(packetData)
                 vpnOutput.flush()
-            } catch (e: Exception) {}
+            } catch (e: Exception) {
+                LogManager.e("VPN Yazma Hatası (UDP): ${e.message}")
+            }
         }
     }
     

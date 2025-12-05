@@ -20,9 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.anonimbiri.removedpi.R
 import com.anonimbiri.removedpi.data.VpnState
 import com.anonimbiri.removedpi.ui.components.ConnectionStatusCard
 import com.anonimbiri.removedpi.ui.components.VpnConnectionButton
@@ -78,7 +80,18 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Remove DPI", fontWeight = FontWeight.Bold) },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_removedpi),
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Remove DPI", fontWeight = FontWeight.Bold)
+                    }
+                },
                 actions = {
                     if (LogManager.enabled) {
                         IconButton(onClick = onNavigateToLogs) {

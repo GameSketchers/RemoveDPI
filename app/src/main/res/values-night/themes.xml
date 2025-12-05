@@ -5,7 +5,7 @@
     </style>
 
     <style name="Theme.RemoveDPI.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#FAFDFC</item>
+        <item name="windowSplashScreenBackground">#0E1514</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_removedpi</item>
         <item name="windowSplashScreenAnimationDuration">300</item>
         <item name="postSplashScreenTheme">@style/Theme.RemoveDPI</item>

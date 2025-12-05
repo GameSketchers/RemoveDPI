@@ -46,13 +46,14 @@ fun SettingsScreen(
         try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             "v${pInfo.versionName}"
-        } catch (e: Exception) { "NaN" }
+        } catch (e: Exception) { "v1.0" }
     }
     
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     var settings by remember { mutableStateOf(DpiSettings()) }
     
     LaunchedEffect(Unit) {
+        // ARTIK HATA VERMEYECEK
         repository.settings.collect { loadedSettings ->
             settings = loadedSettings
             BypassVpnService.settings = loadedSettings
@@ -109,17 +110,12 @@ fun SettingsScreen(
             // === 2. GELİŞMİŞ AYARLAR ===
             item {
                 SettingsSection(title = "Gelişmiş") {
-                    // Split/Fake için
                     if (settings.desyncMethod != DesyncMethod.DISORDER) {
                         SettingsSliderRow("Split Pozisyonu", settings.firstPacketSize.toFloat(), 1f..10f, { updateSettings(settings.copy(firstPacketSize = it.toInt())) }, "${settings.firstPacketSize}. byte")
                     }
-                    
-                    // Disorder için
                     if (settings.desyncMethod == DesyncMethod.DISORDER) {
                         SettingsSliderRow("Parça Sayısı", settings.splitCount.toFloat(), 2f..20f, { updateSettings(settings.copy(splitCount = it.toInt())) }, "${settings.splitCount}")
                     }
-                    
-                    // Fake için Hex
                     if (settings.desyncMethod == DesyncMethod.FAKE) {
                         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                             Text("Fake Hex Verisi", style = MaterialTheme.typography.bodyMedium)
@@ -131,7 +127,6 @@ fun SettingsScreen(
                             )
                         }
                     }
-
                     SettingsSliderRow("Gecikme (ms)", settings.splitDelay.toFloat(), 0f..50f, { updateSettings(settings.copy(splitDelay = it.toLong())) }, "${settings.splitDelay}")
                     SettingsSwitchRow(Icons.Default.TextFields, "Host Karıştırma", "Host -> hoSt", settings.mixHostCase) { updateSettings(settings.copy(mixHostCase = it)) }
                 }
@@ -152,7 +147,24 @@ fun SettingsScreen(
                 }
             }
 
-            // === 4. BEYAZ LİSTE ===
+            // === 4. GÖRÜNÜM ===
+            item {
+                SettingsSection(title = "Görünüm") {
+                    SingleChoiceRow(
+                        selected = settings.appTheme.name,
+                        options = listOf(
+                            AppTheme.SYSTEM.name to "Sistem",
+                            AppTheme.AMOLED.name to "Amoled",
+                            AppTheme.ANIME.name to "Anime"
+                        ),
+                        onSelect = { themeName ->
+                            updateSettings(settings.copy(appTheme = AppTheme.valueOf(themeName)))
+                        }
+                    )
+                }
+            }
+
+            // === 5. BEYAZ LİSTE ===
             item {
                 SettingsSection(title = "İstisnalar") {
                     Row(
@@ -183,44 +195,50 @@ fun SettingsScreen(
                 }
             }
 
-            // === 5. SİSTEM ===
+            // === 6. SİSTEM ===
             item {
                 SettingsSection(title = "Sistem") {
                     SettingsSwitchRow(Icons.Default.BugReport, "Loglama", "Hata ayıklama kayıtları", settings.enableLogs) { updateSettings(settings.copy(enableLogs = it)) }
                 }
             }
             
-            // === 6. SIFIRLA ===
+            // === 7. SIFIRLA ===
             item {
                 Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
                     TextButton(onClick = { updateSettings(DpiSettings()) }) { Text("Varsayılan Ayarlara Dön", color = MaterialTheme.colorScheme.error) }
                 }
             }
             
-            // === 7. HAKKINDA ===
+            // === 8. HAKKINDA (DÜZELTİLDİ: Anonimbiri Üstte) ===
             item {
                 SettingsSection(title = "Hakkında") {
                     Row(modifier = Modifier.fillMaxWidth().clickable { uriHandler.openUri("https://github.com/anonimbiri-IsBack") }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        // Geliştirici (Primary)
                         Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Outlined.Code, null, tint = MaterialTheme.colorScheme.primary)
+                            Icon(painter = painterResource(id = R.drawable.ic_removedpi), null, tint = MaterialTheme.colorScheme.primary)
                         }
                         Spacer(modifier = Modifier.width(16.dp))
-                        Text("Geliştirici: anonimbiri", style = MaterialTheme.typography.bodyLarge)
+                        Column {
+                            // İSİM ÜSTTE VE BÜYÜK
+                            Text("Anonimbiri", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                            // UNVAN ALTTA VE KÜÇÜK
+                            Text("Geliştirici", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     Row(modifier = Modifier.fillMaxWidth().clickable { uriHandler.openUri("https://github.com/GameSketchers/RemoveDPI") }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        // Github (Secondary - Artık renkli)
-                        Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.secondaryContainer), contentAlignment = Alignment.Center) {
-                            Icon(painter = painterResource(id = R.drawable.ic_github), null, tint = MaterialTheme.colorScheme.secondary)
+                        Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                            Icon(painter = painterResource(id = R.drawable.ic_github), null, tint = MaterialTheme.colorScheme.primary)
                         }
                         Spacer(modifier = Modifier.width(16.dp))
-                        Text("Github Açık Kaynak", style = MaterialTheme.typography.bodyLarge)
+                        Column {
+                            Text("Github", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                            Text("Açık kaynak kod deposu", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
             }
             
-            // === 8. SÜRÜM BİLGİSİ ===
+            // === 9. SÜRÜM BİLGİSİ ===
             item {
                 Box(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp), contentAlignment = Alignment.Center) {
                     Text("Remove DPI • $appVersion", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
@@ -250,7 +268,6 @@ fun SettingsScreen(
         ) {
             Icon(icon, null, tint = if(checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) { 
             Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)

@@ -9,11 +9,28 @@ import kotlinx.coroutines.flow.asStateFlow
 class SettingsRepository(context: Context) {
     
     private val prefs: SharedPreferences = context.getSharedPreferences("dpi_prefs", Context.MODE_PRIVATE)
-    private val _settings = MutableStateFlow(loadSettings())
-    val settings: Flow<DpiSettings> = _settings.asStateFlow()
+
+    // Singleton StateFlow (Veri ortak, hafızada tek bir kopya tutulur)
+    companion object {
+        private val _settings = MutableStateFlow(DpiSettings())
+        // Sınıf üzerinden erişim için (SettingsRepository.settings)
+        val globalSettings: Flow<DpiSettings> = _settings.asStateFlow()
+    }
+
+    // Nesne üzerinden erişim için (repository.settings) - BU SATIR HATAYI ÇÖZER
+    val settings: Flow<DpiSettings> = globalSettings
+
+    init {
+        // Başlangıçta verileri yükle
+        _settings.value = loadSettings()
+    }
     
     private fun loadSettings(): DpiSettings {
         return DpiSettings(
+            appTheme = try {
+                AppTheme.valueOf(prefs.getString("app_theme", "SYSTEM") ?: "SYSTEM")
+            } catch (e: Exception) { AppTheme.SYSTEM },
+
             whitelist = prefs.getStringSet("whitelist", setOf(
                 "garanti.com.tr", "ziraatbank.com.tr", "isbank.com.tr", 
                 "yapikredi.com.tr", "akbank.com", "turkiye.gov.tr", 
@@ -26,11 +43,9 @@ class SettingsRepository(context: Context) {
             bufferSize = prefs.getInt("buffer_size", 32768),
             tcpFastOpen = prefs.getBoolean("tcp_fast_open", false),
             enableTcpNodelay = prefs.getBoolean("tcp_nodelay", true),
-            
             desyncMethod = try {
                 DesyncMethod.valueOf(prefs.getString("desync_method", "SPLIT") ?: "SPLIT")
             } catch (e: Exception) { DesyncMethod.SPLIT },
-            
             desyncHttp = prefs.getBoolean("desync_http", true),
             desyncHttps = prefs.getBoolean("desync_https", true),
             firstPacketSize = prefs.getInt("first_packet_size", 1),
@@ -52,6 +67,7 @@ class SettingsRepository(context: Context) {
     
     suspend fun updateSettings(settings: DpiSettings) {
         prefs.edit().apply {
+            putString("app_theme", settings.appTheme.name)
             putStringSet("whitelist", settings.whitelist)
             putInt("buffer_size", settings.bufferSize)
             putBoolean("tcp_fast_open", settings.tcpFastOpen)

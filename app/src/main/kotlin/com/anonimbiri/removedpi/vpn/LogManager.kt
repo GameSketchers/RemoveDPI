@@ -7,7 +7,12 @@ import java.util.*
 
 object LogManager {
     
-    enum class Level { DEBUG, INFO, WARN, ERROR, BYPASS }
+    enum class Level { 
+        INFO,   // Bağlantı durumları (Bağlandı, Kesildi)
+        WARN,   // Uyarılar (QUIC Engellendi vb.)
+        ERROR,  // Hatalar (Timeout, Socket hatası)
+        BYPASS  // DPI Atlatma işlemleri (Split yapıldı vb.)
+    }
     
     data class LogEntry(
         val time: String,
@@ -18,13 +23,12 @@ object LogManager {
     private val _logs = MutableStateFlow<List<LogEntry>>(emptyList())
     val logs: StateFlow<List<LogEntry>> = _logs
     
-    private val timeFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
-    private const val MAX_LOGS = 500
+    private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+    private const val MAX_LOGS = 1000 // Biraz daha fazla log tutsun
     
     @Volatile
     var enabled = true
     
-    fun d(message: String) = log(Level.DEBUG, message)
     fun i(message: String) = log(Level.INFO, message)
     fun w(message: String) = log(Level.WARN, message)
     fun e(message: String) = log(Level.ERROR, message)

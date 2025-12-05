@@ -13,9 +13,10 @@ class DpiBypass(private val settings: DpiSettings) {
         val output = socket.getOutputStream()
         
         return try {
-            // Whitelist kontrolü
             val hostname = if (isHttps) extractSni(data) else extractHostHeader(data)
+            
             if (hostname != null && isWhitelisted(hostname)) {
+                LogManager.i("Beyaz Liste Eşleşmesi: $hostname (Bypass Atlandı)")
                 return sendDirect(output, data)
             }
             
@@ -23,15 +24,26 @@ class DpiBypass(private val settings: DpiSettings) {
                                (!isHttps && settings.desyncHttp)
             
             if (shouldBypass) {
+                val protocol = if(isHttps) "HTTPS" else "HTTP"
                 when (settings.desyncMethod) {
-                    DesyncMethod.SPLIT -> sendSplit(output, data)
-                    DesyncMethod.DISORDER -> sendShredded(output, data)
-                    DesyncMethod.FAKE -> sendFake(output, data)
+                    DesyncMethod.SPLIT -> {
+                        LogManager.bypass("BYPASS: $protocol Split (Bölme) Uygulandı -> $hostname")
+                        sendSplit(output, data)
+                    }
+                    DesyncMethod.DISORDER -> {
+                        LogManager.bypass("BYPASS: $protocol Disorder (Karıştırma) Uygulandı -> $hostname")
+                        sendShredded(output, data)
+                    }
+                    DesyncMethod.FAKE -> {
+                        LogManager.bypass("BYPASS: $protocol Fake (Sahte) Paket Gönderildi -> $hostname")
+                        sendFake(output, data)
+                    }
                 }
             } else {
                 sendDirect(output, data)
             }
         } catch (e: Exception) {
+            LogManager.e("Bypass Hatası: ${e.message}")
             try { sendDirect(output, data) } catch (e2: Exception) { false }
         }
     }

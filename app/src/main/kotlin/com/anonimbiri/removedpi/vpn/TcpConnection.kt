@@ -19,16 +19,14 @@ class TcpConnection(
     private val settings: DpiSettings
 ) {
     companion object {
-        // Sabit Ayarlar (Artık DpiSettings'den çekilmiyor)
         private const val MAX_CONNECTIONS = 512
-        private const val CONNECT_TIMEOUT = 15000 // 15 sn
-        private const val READ_TIMEOUT = 30000    // 30 sn
+        private const val CONNECT_TIMEOUT = 15000
+        private const val READ_TIMEOUT = 30000
         private const val WINDOW_SIZE = 65535
         private const val KEEP_ALIVE = true
     }
 
     private val sessions = ConcurrentHashMap<String, TcpSession>()
-    // maxConnections hatasını düzeltmek için sabit değer kullandık
     private val executor: ExecutorService = Executors.newFixedThreadPool(MAX_CONNECTIONS)
     
     @Volatile private var isRunning = true
@@ -66,10 +64,16 @@ class TcpConnection(
                 packet.isFin -> handleFin(packet, key)
                 packet.isRst -> handleRst(key)
             }
-        } catch (e: Exception) { closeSession(key) }
+        } catch (e: Exception) {
+            LogManager.e("TCP Hatası [$key]: ${e.message}")
+            closeSession(key)
+        }
     }
     
     private fun handleSyn(packet: Packet, key: String) {
+        val dest = "${packet.destinationAddress.hostAddress}:${packet.destinationPort}"
+        LogManager.i("TCP İstek Başladı → $dest")
+
         sessions[key]?.let { if (it.state != SessionState.CLOSED) closeSession(key) }
         
         val session = TcpSession(
@@ -89,11 +93,11 @@ class TcpConnection(
     }
     
     private fun connectToServer(session: TcpSession) {
+        val dest = "${session.dstIp.hostAddress}:${session.dstPort}"
         try {
             val socket = Socket()
             vpnService.protect(socket)
             
-            // Ayarlar artık sabitlerden okunuyor
             socket.tcpNoDelay = settings.enableTcpNodelay
             socket.soTimeout = READ_TIMEOUT
             socket.keepAlive = KEEP_ALIVE
@@ -108,9 +112,13 @@ class TcpConnection(
             
             session.socket = socket
             session.state = SessionState.ESTABLISHED
+            
+            LogManager.i("Bağlantı Kuruldu ✓ $dest")
+            
             processPendingData(session)
             readFromServer(session)
         } catch (e: Exception) {
+            LogManager.e("Bağlantı Başarısız ($dest): ${e.message}")
             sendRst(session)
             closeSession(session.key)
         }
@@ -135,11 +143,15 @@ class TcpConnection(
                     session.lastActivity = System.currentTimeMillis()
                     sendToClient(session, buffer.copyOf(bytesRead))
                 } else if (bytesRead == -1) {
+                    LogManager.i("Sunucu Bağlantıyı Kapattı: ${session.dstIp.hostAddress}")
                     sendFin(session)
                     break
                 }
             }
         } catch (e: IOException) {
+            if (session.state != SessionState.CLOSED && isRunning) {
+                LogManager.e("Veri Okuma Hatası (${session.dstIp.hostAddress}): ${e.message}")
+            }
         } finally { closeSession(session.key) }
     }
     
@@ -168,6 +180,9 @@ class TcpConnection(
             if (!session.firstDataSent) {
                 session.firstDataSent = true
                 val bypass = DpiBypass(settings)
+                val dest = "${session.dstIp.hostAddress}:${session.dstPort}"
+                
+                // Bypass Logu DpiBypass classında atılıyor
                 bypass.sendWithBypass(socket, data, session.isHttps)
             } else {
                 socket.getOutputStream().apply {
@@ -177,7 +192,10 @@ class TcpConnection(
             }
             bytesOut.addAndGet(data.size.toLong())
             session.lastActivity = System.currentTimeMillis()
-        } catch (e: IOException) { closeSession(session.key) }
+        } catch (e: IOException) { 
+            LogManager.e("Veri Gönderme Hatası: ${e.message}")
+            closeSession(session.key) 
+        }
     }
     
     private fun handleAck(packet: Packet, key: String) {
@@ -188,6 +206,7 @@ class TcpConnection(
     
     private fun handleFin(packet: Packet, key: String) {
         val session = sessions[key] ?: return
+        LogManager.i("İstemci Bağlantıyı Sonlandırdı (FIN): ${session.dstIp.hostAddress}")
         session.myAckNum = packet.sequenceNumber + 1
         session.state = SessionState.FIN_WAIT
         sendTcpPacket(session, Packet.TCP_FIN or Packet.TCP_ACK)
@@ -195,7 +214,10 @@ class TcpConnection(
         closeSession(key)
     }
     
-    private fun handleRst(key: String) = closeSession(key)
+    private fun handleRst(key: String) {
+        // LogManager.w("RST Paketi Alındı (Bağlantı Sıfırlandı) [$key]")
+        closeSession(key)
+    }
     
     private fun sendToClient(session: TcpSession, data: ByteArray) {
         if (session.state == SessionState.CLOSED) return
@@ -209,7 +231,7 @@ class TcpConnection(
                     srcPort = session.dstPort, dstPort = session.srcPort,
                     seqNum = session.mySeqNum, ackNum = session.myAckNum,
                     flags = Packet.TCP_PSH or Packet.TCP_ACK,
-                    windowSize = WINDOW_SIZE, // Düzeltildi
+                    windowSize = WINDOW_SIZE,
                     payload = data.copyOfRange(offset, offset + chunkSize)
                 )
                 writeToVpn(packet)
@@ -225,7 +247,7 @@ class TcpConnection(
             srcPort = session.dstPort, dstPort = session.srcPort,
             seqNum = session.mySeqNum, ackNum = session.myAckNum,
             flags = flags, 
-            windowSize = WINDOW_SIZE, // Düzeltildi
+            windowSize = WINDOW_SIZE,
             payload = ByteArray(0)
         )
         writeToVpn(packet)
@@ -245,7 +267,9 @@ class TcpConnection(
             val data = ByteArray(packet.remaining())
             packet.get(data)
             synchronized(vpnOutput) { vpnOutput.write(data); vpnOutput.flush() }
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+            LogManager.e("VPN Yazma Hatası: ${e.message}")
+        }
     }
     
     private fun closeSession(key: String) {

@@ -44,6 +44,15 @@ fun VpnConnectionButton(
         label = "buttonColor"
     )
     
+    val iconTint by animateColorAsState(
+        targetValue = if (vpnState == VpnState.DISCONNECTED) {
+            MaterialTheme.colorScheme.onPrimary 
+        } else {
+            Color.White
+        },
+        label = "iconTint"
+    )
+    
     val scale by animateFloatAsState(
         targetValue = if (vpnState == VpnState.CONNECTING) 0.95f else 1f,
         animationSpec = if (vpnState == VpnState.CONNECTING) {
@@ -55,17 +64,6 @@ fun VpnConnectionButton(
             tween(100)
         },
         label = "scale"
-    )
-    
-    val infiniteTransition = rememberInfiniteTransition(label = "rotation")
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation"
     )
     
     Box(
@@ -85,7 +83,6 @@ fun VpnConnectionButton(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        // Outer ring
         Box(
             modifier = Modifier
                 .size(160.dp)
@@ -96,7 +93,6 @@ fun VpnConnectionButton(
                 )
         )
         
-        // Inner button
         Surface(
             modifier = Modifier.size(140.dp),
             shape = CircleShape,
@@ -115,7 +111,7 @@ fun VpnConnectionButton(
                     },
                     contentDescription = null,
                     modifier = Modifier.size(60.dp),
-                    tint = Color.White
+                    tint = iconTint
                 )
             }
         }
@@ -228,115 +224,7 @@ private fun StatItem(
     }
 }
 
-@Composable
-fun SettingsCard(
-    title: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            content()
-        }
-    }
-}
-
-@Composable
-fun SettingsSwitch(
-    title: String,
-    description: String? = null,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            if (description != null) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange
-        )
-    }
-}
-
-@Composable
-fun SettingsSlider(
-    title: String,
-    value: Float,
-    onValueChange: (Float) -> Unit,
-    valueRange: ClosedFloatingPointRange<Float>,
-    steps: Int = 0,
-    valueLabel: String
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(
-                text = valueLabel,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-        Slider(
-            value = value,
-            onValueChange = onValueChange,
-            valueRange = valueRange,
-            steps = steps
-        )
-    }
-}
+// === HELPER FUNCTIONS (BURAYA EKLENDİ) ===
 
 private fun formatBytes(bytes: Long): String {
     return when {

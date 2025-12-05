@@ -6,6 +6,8 @@ data class DpiSettings(
     val tcpFastOpen: Boolean = false,
     val enableTcpNodelay: Boolean = true,
     
+    val appTheme: AppTheme = AppTheme.SYSTEM,
+    
     val whitelist: Set<String> = setOf(
         "turkiye.gov.tr", "giris.turkiye.gov.tr",
         "cimer.gov.tr",
@@ -172,3 +174,4 @@ data class DpiSettings(
 enum class BypassMode { FULL }
 enum class DesyncMethod { SPLIT, DISORDER, FAKE }
 enum class VpnState { DISCONNECTED, CONNECTING, CONNECTED, ERROR }
+enum class AppTheme { SYSTEM, AMOLED, ANIME }
