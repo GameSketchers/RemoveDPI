@@ -1,7 +1,6 @@
 package com.anonimbiri.removedpi.data
 
 data class DpiSettings(
-    val bypassMode: BypassMode = BypassMode.FULL,
     val bufferSize: Int = 32768,
     val tcpFastOpen: Boolean = false,
     val enableTcpNodelay: Boolean = true,
@@ -162,8 +161,9 @@ data class DpiSettings(
     val splitDelay: Long = 2L,
     val mixHostCase: Boolean = true,
     val splitCount: Int = 3,
-    val fakeHex: String = "474554202f20485454502f312e300d0a0d0a", 
-    val fakeCount: Int = 1,
+    val fakeHex: String = "160301",
+    val fakeCount: Int = 10,
+    val ttlValue: Int = 8,
     val customDnsEnabled: Boolean = false, 
     val customDns: String = "94.140.14.14",
     val customDns2: String = "94.140.15.15",
@@ -171,7 +171,12 @@ data class DpiSettings(
     val enableLogs: Boolean = true
 )
 
-enum class BypassMode { FULL }
-enum class DesyncMethod { SPLIT, DISORDER, FAKE }
+enum class DesyncMethod { 
+    SPLIT, 
+    DISORDER, 
+    FAKE,
+    TTL,
+    FAKE_SPLIT
+}
 enum class VpnState { DISCONNECTED, CONNECTING, CONNECTED, ERROR }
 enum class AppTheme { SYSTEM, AMOLED, ANIME }

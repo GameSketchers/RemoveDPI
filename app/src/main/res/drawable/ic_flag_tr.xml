@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Kırmızı arka plan -->
+    <path
+        android:fillColor="#E30A17"
+        android:pathData="M2,6h20v12H2z"/>
+    <!-- Beyaz ay -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10,12m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"/>
+    <!-- Kırmızı ay iç kısmı (hilal oluşturur) -->
+    <path
+        android:fillColor="#E30A17"
+        android:pathData="M11.5,12m-3.2,0a3.2,3.2 0,1 1,6.4 0a3.2,3.2 0,1 1,-6.4 0"/>
+    <!-- Beyaz yıldız -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M14.5,12l1.2,-0.9 1.5,0 -0.5,1.4 0.9,1.2 -1.5,0 -0.9,1.2 -0.3,-1.5 -1.4,-0.5 1.4,-0.5z"/>
+</vector>

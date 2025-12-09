@@ -1,107 +1,133 @@
 <div align="center">
 
-  <h1>🛡️ RemoveDPI for Android</h1>
+  <!-- App Logo -->
+  <img src="app/src/main/playstore-icon.png" width="150" alt="RemoveDPI Logo" />
 
+  <h1>🛡️ RemoveDPI</h1>
+  
+  <p><strong>DPI Bypass Tool for Android</strong></p>
+
+  <!-- Language Shields -->
   <p>
-    <strong>DPI (Derin Paket İnceleme) tabanlı sansürleri ve hız kısıtlamalarını aşın.</strong>
+    <a href="README.md">
+      <img src="https://img.shields.io/badge/English-Active-007bff?style=for-the-badge" alt="English" />
+    </a>
+    <a href="README.tr.md">
+      <img src="https://img.shields.io/badge/Türkçe-Switch-gray?style=for-the-badge" alt="Turkish" />
+    </a>
+    <a href="README.ja.md">
+      <img src="https://img.shields.io/badge/日本語-Switch-gray?style=for-the-badge" alt="Japanese" />
+    </a>
+    <a href="README.ru.md">
+      <img src="https://img.shields.io/badge/Русский-Switch-gray?style=for-the-badge" alt="Russian" />
+    </a>
+  </p>
+
+  <!-- Dynamic Badges -->
+  <p>
+    <a href="https://github.com/GameSketchers/RemoveDPI/releases/latest">
+      <img src="https://img.shields.io/github/v/release/GameSketchers/RemoveDPI?style=for-the-badge&logo=github&logoColor=white&label=Version&color=ff0099" alt="Version" />
+    </a>
+    <a href="https://github.com/GameSketchers/RemoveDPI/releases">
+      <img src="https://img.shields.io/github/downloads/GameSketchers/RemoveDPI/total?style=for-the-badge&logo=download&logoColor=white&label=Downloads&color=ff0099" alt="Downloads" />
+    </a>
+    <a href="https://github.com/GameSketchers/RemoveDPI/stargazers">
+      <img src="https://img.shields.io/github/stars/GameSketchers/RemoveDPI?style=for-the-badge&logo=star&logoColor=white&label=Stars&color=ff0099" alt="Stars" />
+    </a>
   </p>
 
   <p>
     <a href="https://www.android.com">
-      <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android" />
+      <img src="https://img.shields.io/badge/Android_9+-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android" />
     </a>
     <a href="https://kotlinlang.org">
-      <img src="https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
+      <img src="https://img.shields.io/badge/Kotlin-7F52FF?style=flat-square&logo=kotlin&logoColor=white" alt="Kotlin" />
     </a>
-    <a href="https://github.com/GameSketchers/RemoveDPI/releases">
-      <img src="https://img.shields.io/badge/Release-Beta_v1.0-blue?style=for-the-badge&logo=rocket&logoColor=white" alt="Release" />
+    <a href="https://github.com/GameSketchers/RemoveDPI/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/GameSketchers/RemoveDPI?style=flat-square&color=red" alt="License" />
     </a>
-    <a href="LICENSE">
-      <img src="https://img.shields.io/badge/License-MIT-red?style=for-the-badge&logo=law&logoColor=white" alt="License" />
-    </a>
+    <img src="https://img.shields.io/badge/Root-Not_Required-success?style=flat-square" alt="No Root" />
   </p>
 
-  <p>
-    <a href="#-neleri-çözer">Özellikler</a> •
-    <a href="#-kurulum-ve-kullanım">Kurulum</a> •
-    <a href="#-nasıl-çalışır">Çalışma Mantığı</a> •
-    <a href="https://github.com/GameSketchers/RemoveDPI/releases">📥 Hemen İndir</a>
-  </p>
+  <br />
+
+  <a href="https://github.com/GameSketchers/RemoveDPI/releases/latest">
+    <img src="https://img.shields.io/badge/⬇_DOWNLOAD_APK-ff0099?style=for-the-badge&logoColor=white" alt="Download" />
+  </a>
 
 </div>
 
----
+<br />
 
 > [!IMPORTANT]
-> **Bu uygulama bir VPN değildir.** > IP adresinizi gizlemez veya verilerinizi şifrelemez. Sadece internet sağlayıcınızın (ISP) paketlerinizi analiz etmesini engelleyerek yasaklı sitelere girmenizi sağlar. **Hız düşüşü yaşatmaz.**
+> This is not a VPN. It does not hide your IP or encrypt your data. It enables access to blocked sites by bypassing ISP DPI analysis. **No speed loss.**
 
 ---
 
-## ⚡ Neleri Çözer?
+## ⚡ Features
 
-Bu araç, Türkiye'deki internet servis sağlayıcılarının uyguladığı **DPI (Deep Packet Inspection)** sistemlerini atlatmak için tasarlanmıştır.
-
-| Özellik | Açıklama |
-| :--- | :--- |
-| 🚫 **Erişim Engelleri** | Discord, Reddit ve diğer yasaklı servislere VPN'siz giriş sağlar. |
-| 🚀 **Hız Kısıtlamaları** | YouTube, Instagram ve X (Twitter) üzerindeki yapay yavaşlatmayı (Throttling) kaldırır. |
-| ⚡ **Sıfır Hız Kaybı** | Uzak bir sunucuya bağlanmadığı için pinginiz artmaz, hızınız düşmez. |
-| 🔓 **Root Gerektirmez** | Herhangi bir Android cihazda (Android 9+) root yetkisi olmadan çalışır. |
+| | |
+|:---|:---|
+| 🚫 **Bypass Restrictions** | Access Discord, Reddit, and blocked services without VPN |
+| 🚀 **Remove Throttling** | Disables speed limits on YouTube, Instagram, X |
+| ⚡ **Zero Latency** | No remote server connection, no ping increase |
+| 🔓 **No Root Required** | Works on all Android 9+ devices |
 
 ---
 
-## 📸 Ekran Görüntüleri
+## 📸 Screenshots
 
 <div align="center">
-  <img src="screenshots/1.jpg" width="30%" alt="Ana Ekran" style="border-radius: 10px; margin: 10px;" />
-  <img src="screenshots/2.jpg" width="30%" alt="Ayarlar" style="border-radius: 10px; margin: 10px;" />
-  <img src="screenshots/3.jpg" width="30%" alt="İstisnalar" style="border-radius: 10px; margin: 10px;" />
-  <img src="screenshots/4.jpg" width="30%" alt="Loglar" style="border-radius: 10px; margin: 10px;" />
+  <img src="screenshots/en/1.jpg" width="24%" />
+  <img src="screenshots/en/2.jpg" width="24%" />
+  <img src="screenshots/en/3.jpg" width="24%" />
+  <img src="screenshots/en/4.jpg" width="24%" />
 </div>
 
 ---
 
-## 🛠️ Nasıl Çalışır?
+## 🎨 Themes
 
-RemoveDPI, Android'in yerel `VpnService` özelliğini kullanarak trafiği cihaz içinde yönlendirir ve paketleri modifiye eder.
+`Material You` · `Anime` · `AMOLED`
+
+---
+
+## 🛠️ How it Works?
 
 <details>
-<summary>⚙️ <strong>Teknik Detayları Görmek İçin Tıklayın</strong></summary>
-<br>
+<summary><strong>Technical Details</strong></summary>
+<br />
 
-1.  **TCP Fragmantasyonu (Blind Split):** HTTPS bağlantısı kurulurken gönderilen `ClientHello` paketini parçalara ayırır (örneğin ilk baytı koparır). DPI cihazları bu parçalanmış paketi anlamlandıramaz ve "bu site yasaklı değil" diyerek geçişe izin verir.
-
-2.  **QUIC / UDP Engelleme:**
-    Google ve Meta servislerinin (YouTube, Instagram) kullandığı UDP 443 portunu (QUIC protokolü) engeller. Tarayıcıyı ve uygulamaları TCP kullanmaya zorlar. TCP, manipüle edilmesi (DPI atlatılması) en kolay protokoldür.
+- **TCP Fragmentation:** Fragments the `ClientHello` packet to prevent DPI analysis
+- **QUIC Block:** Blocks UDP port 443 to force traffic over TCP
 
 </details>
 
 ---
 
-## 📥 Kurulum ve Kullanım
+## 📥 Installation
 
-1.  **İndir:** En son sürümü [Releases Sayfasından](https://github.com/GameSketchers/RemoveDPI/releases) indirin.
-2.  **Yükle:** İndirdiğiniz `.apk` dosyasını kurun.
-3.  **Başlat:** Uygulamayı açın ve devasa **"BAŞLAT"** butonuna basın.
-4.  **İzin Ver:** Android "VPN Bağlantı İsteği" sorarsa onaylayın.
-
-> **İpucu:** Uygulama varsayılan olarak "Türkiye Modu" ayarlarıyla gelir. Ekstra ayar yapmanıza gerek yoktur. Eğer bağlanamazsanız ayarlardan **"DPI Bypass Mode: SPLIT"** seçeneğini kontrol edin.
+1. Download APK from [Releases](https://github.com/GameSketchers/RemoveDPI/releases/latest)
+2. Install and open
+3. Press **START** button
+4. Approve VPN permission
 
 ---
 
-## 🤝 Teşekkürler & Kredi
+## 🤝 Credits
 
-Bu proje, internet özgürlüğü için çalışan devlerin omuzlarında yükselmektedir:
+| Project | Contribution |
+|:---|:---|
+| [GoodbyeDPI](https://github.com/ValdikSS/GoodbyeDPI) | Original concept |
+| [GoodbyeDPI-Turkey](https://github.com/cagritaskn/GoodbyeDPI-Turkey) | TR configurations |
 
-* **GoodbyeDPI (ValdikSS):** Orijinal PC mantığı ve ilham kaynağı.
-* **GoodbyeDPI-Turkey (cagritaskn):** Türkiye'ye özel konfigürasyonlar.
-* **Geliştirici:** [Anonimbiri](https://github.com/anonimbiri-IsBack)
+<div align="center">
+  <br />
+  <strong>Developer:</strong> <a href="https://github.com/anonimbiri-IsBack">@Anonimbiri</a>
+</div>
 
 ---
 
-## ⚖️ Yasal Uyarı
+## ⚖️ Legal Disclaimer
 
-```text
-Bu yazılım, ağ trafiği analizi ve sansür yöntemlerinin teknik incelemesi amacıyla 
-EĞİTİM AMAÇLI geliştirilmiştir. Kullanıcılar, bu yazılımı kullanırken bulundukları 
-ülkenin yasalarına uymakla yükümlüdür. Geliştirici, kötüye kullanımdan sorumlu değildir.
+This software is developed for **educational purposes**. Users are responsible for complying with the laws of their country. The developer cannot be held responsible for misuse.

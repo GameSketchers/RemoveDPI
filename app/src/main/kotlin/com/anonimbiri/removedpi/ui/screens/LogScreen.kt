@@ -19,10 +19,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.anonimbiri.removedpi.R
 import com.anonimbiri.removedpi.vpn.LogManager
 import java.io.OutputStreamWriter
 import java.text.SimpleDateFormat
@@ -38,14 +40,12 @@ fun LogScreen(
     val listState = rememberLazyListState()
     val context = LocalContext.current
     
-    // Logları dosyaya kaydetme işleyicisi
     val saveFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/plain")
     ) { uri: Uri? ->
         uri?.let { saveLogsToFile(context, it, logs) }
     }
 
-    // Yeni log gelince otomatik aşağı kaydır
     LaunchedEffect(logs.size) {
         if (logs.isNotEmpty()) {
             listState.animateScrollToItem(logs.size - 1)
@@ -55,10 +55,10 @@ fun LogScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Log Kayıtları") },
+                title = { Text(stringResource(R.string.screen_logs_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Geri")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.cd_back))
                     }
                 }
             )
@@ -68,7 +68,6 @@ fun LogScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.End
             ) {
-                // Kaydet Butonu (Small FAB)
                 SmallFloatingActionButton(
                     onClick = {
                         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -77,21 +76,19 @@ fun LogScreen(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 ) {
-                    Icon(Icons.Default.Save, "Kaydet")
+                    Icon(Icons.Default.Save, stringResource(R.string.cd_save))
                 }
 
-                // Sil Butonu (Normal FAB)
                 FloatingActionButton(
                     onClick = { LogManager.clear() },
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                 ) {
-                    Icon(Icons.Default.Delete, "Temizle")
+                    Icon(Icons.Default.Delete, stringResource(R.string.cd_clear))
                 }
             }
         }
     ) { paddingValues ->
-        // Yazıların seçilebilir olması için SelectionContainer
         SelectionContainer {
             LazyColumn(
                 modifier = Modifier
@@ -124,7 +121,6 @@ fun LogScreen(
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 }
-                // FAB'ların altında boşluk kalsın
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
@@ -140,8 +136,8 @@ private fun saveLogsToFile(context: Context, uri: Uri, logs: List<LogManager.Log
                 }
             }
         }
-        Toast.makeText(context, "Loglar kaydedildi", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.toast_logs_saved), Toast.LENGTH_SHORT).show()
     } catch (e: Exception) {
-        Toast.makeText(context, "Kaydetme hatası: ${e.message}", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, context.getString(R.string.toast_save_error, e.message), Toast.LENGTH_LONG).show()
     }
 }

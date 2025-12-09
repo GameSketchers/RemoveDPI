@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Internal files directory: /data/data/package/files/ -->
+    <files-path
+        name="internal_files"
+        path="." />
+    
+    <!-- Updates folder: /data/data/package/files/updates/ -->
+    <files-path
+        name="updates"
+        path="updates/" />
+    
+    <!-- Cache directory -->
+    <cache-path
+        name="cache"
+        path="." />
+    
+    <!-- External files (opsiyonel) -->
+    <external-files-path
+        name="external_files"
+        path="." />
+</paths>

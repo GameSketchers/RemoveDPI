@@ -22,15 +22,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.anonimbiri.removedpi.R
 import com.anonimbiri.removedpi.data.DpiSettings
 import com.anonimbiri.removedpi.data.SettingsRepository
 import com.anonimbiri.removedpi.vpn.BypassVpnService
@@ -40,6 +49,7 @@ import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,14 +59,39 @@ fun WhitelistScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val repository = remember { SettingsRepository(context) }
-    
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val density = LocalDensity.current
     
     var settings by remember { mutableStateOf(DpiSettings()) }
     var searchQuery by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     var domainToEdit by remember { mutableStateOf<String?>(null) }
     var domainInput by remember { mutableStateOf("") }
+    
+    val searchBarHeight = 72.dp
+    val searchBarHeightPx = with(density) { searchBarHeight.toPx() }
+    var searchBarOffsetY by remember { mutableFloatStateOf(0f) }
+    
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val delta = available.y
+                searchBarOffsetY = (searchBarOffsetY + delta).coerceIn(-searchBarHeightPx, 0f)
+                return Offset.Zero
+            }
+        }
+    }
+    
+    val visibleHeight by remember {
+        derivedStateOf {
+            ((searchBarHeightPx + searchBarOffsetY) / density.density).coerceAtLeast(0f).dp
+        }
+    }
+    
+    val searchBarAlpha by remember {
+        derivedStateOf {
+            ((searchBarHeightPx + searchBarOffsetY) / searchBarHeightPx).coerceIn(0f, 1f)
+        }
+    }
     
     LaunchedEffect(Unit) {
         repository.settings.collect { loadedSettings ->
@@ -81,32 +116,43 @@ fun WhitelistScreen(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.nestedScroll(nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Column(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background)
-                    .padding(bottom = 8.dp)
+                    .clipToBounds()
             ) {
                 TopAppBar(
-                    title = { Text("İstisnalar", fontWeight = FontWeight.Bold) },
+                    title = { Text(stringResource(R.string.screen_whitelist_title), fontWeight = FontWeight.Bold) },
                     navigationIcon = { 
                         IconButton(onClick = onNavigateBack) { 
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Geri") 
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.cd_back)) 
                         } 
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background, 
-                        scrolledContainerColor = MaterialTheme.colorScheme.background
-                    ),
-                    scrollBehavior = scrollBehavior
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
                 )
-                ModernSearchBar(
-                    query = searchQuery, 
-                    onQueryChange = { searchQuery = it }, 
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(visibleHeight)
+                        .graphicsLayer { alpha = searchBarAlpha }
+                        .padding(horizontal = 16.dp)
+                        .clipToBounds(),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    if (visibleHeight > 8.dp) {
+                        ModernSearchBar(
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it },
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+                }
             }
         }
     ) { paddingValues ->
@@ -115,7 +161,7 @@ fun WhitelistScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp) 
         ) {
             item {
@@ -135,7 +181,7 @@ fun WhitelistScreen(
                         contentAlignment = Alignment.Center
                     ) { 
                         Text(
-                            "Sonuç bulunamadı", 
+                            stringResource(R.string.no_results_found), 
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         ) 
                     } 
@@ -157,26 +203,27 @@ fun WhitelistScreen(
                     )
                 }
             }
+            
             item { Spacer(modifier = Modifier.height(32.dp)) }
         }
         
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
-                title = { Text(if (domainToEdit == null) "Site Ekle" else "Site Düzenle") },
+                title = { Text(if (domainToEdit == null) stringResource(R.string.dialog_add_site_title) else stringResource(R.string.dialog_edit_site_title)) },
                 text = {
                     Column {
                         OutlinedTextField(
                             value = domainInput,
                             onValueChange = { domainInput = it },
-                            label = { Text("Domain (örn: google.com)") },
+                            label = { Text(stringResource(R.string.label_domain_hint)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "Bu site için DPI bypass devre dışı bırakılacak.", 
+                            stringResource(R.string.dialog_domain_desc), 
                             style = MaterialTheme.typography.bodySmall, 
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -197,22 +244,18 @@ fun WhitelistScreen(
                             showDialog = false
                         }
                     }) { 
-                        Text(if (domainToEdit == null) "Ekle" else "Kaydet") 
+                        Text(if (domainToEdit == null) stringResource(R.string.btn_add) else stringResource(R.string.btn_save)) 
                     } 
                 },
                 dismissButton = { 
                     TextButton(onClick = { showDialog = false }) { 
-                        Text("İptal") 
+                        Text(stringResource(R.string.btn_cancel)) 
                     } 
                 }
             )
         }
     }
 }
-
-// ╔══════════════════════════════════════════════════════════════════════════════╗
-// ║                              HELPER COMPOSABLES                               ║
-// ╚══════════════════════════════════════════════════════════════════════════════╝
 
 @Composable
 fun AddSiteCard(onClick: () -> Unit) {
@@ -247,7 +290,7 @@ fun AddSiteCard(onClick: () -> Unit) {
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                "Site Ekle", 
+                stringResource(R.string.card_add_site), 
                 style = MaterialTheme.typography.titleMedium, 
                 fontWeight = FontWeight.Medium
             )
@@ -285,7 +328,6 @@ fun WhitelistItem(
                 modifier = Modifier.weight(1f)
             )
             
-            // Edit Button
             Box(
                 modifier = Modifier
                     .size(36.dp)
@@ -304,7 +346,6 @@ fun WhitelistItem(
             
             Spacer(modifier = Modifier.width(8.dp))
             
-            // Delete Button
             Box(
                 modifier = Modifier
                     .size(36.dp)
@@ -330,13 +371,15 @@ fun ModernSearchBar(
     onQueryChange: (String) -> Unit, 
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(50.dp),
-        shape = RoundedCornerShape(25.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        contentColor = MaterialTheme.colorScheme.onSurface
+            .height(56.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -353,7 +396,7 @@ fun ModernSearchBar(
             Box(modifier = Modifier.weight(1f)) {
                 if (query.isEmpty()) {
                     Text(
-                        "İstisnalarda ara...", 
+                        stringResource(R.string.search_hint), 
                         style = MaterialTheme.typography.bodyLarge, 
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
@@ -391,7 +434,6 @@ fun AsyncFavicon(
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     
-    // ✅ Tema renkleri - surfaceVariant (ayarlarla uyumlu, daha koyu)
     val containerColor = MaterialTheme.colorScheme.surfaceVariant
     val textColor = MaterialTheme.colorScheme.onSurfaceVariant
     
@@ -399,15 +441,10 @@ fun AsyncFavicon(
         if (bitmap != null) return@LaunchedEffect
         isLoading = true
         withContext(Dispatchers.IO) {
-            // Favicon kaynakları - öncelik sırasına göre
             val sources = listOf(
-                // 1. Google Favicons API (en güvenilir ve hızlı)
                 "https://www.google.com/s2/favicons?sz=64&domain_url=$domain",
-                // 2. DuckDuckGo Icons API
                 "https://icons.duckduckgo.com/ip3/$domain.ico",
-                // 3. Doğrudan siteden (bazı siteler için çalışır)
                 "https://$domain/favicon.ico",
-                // 4. Yandex Favicon API (yedek)
                 "https://favicon.yandex.net/favicon/$domain"
             )
             
@@ -423,7 +460,6 @@ fun AsyncFavicon(
                     
                     if (connection.responseCode == 200) {
                         val contentType = connection.contentType ?: ""
-                        // Sadece resim dosyalarını kabul et
                         if (contentType.contains("image") || 
                             url.endsWith(".ico") || 
                             url.endsWith(".png")) {
@@ -448,7 +484,6 @@ fun AsyncFavicon(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            // ✅ surfaceVariant - ayarlardaki kartlarla aynı ton (daha koyu)
             .background(containerColor),
         contentAlignment = Alignment.Center
     ) {
@@ -464,7 +499,6 @@ fun AsyncFavicon(
                 )
             }
             isLoading -> {
-                // Yüklenirken küçük loading indicator
                 CircularProgressIndicator(
                     modifier = Modifier.size(16.dp),
                     strokeWidth = 2.dp,
@@ -472,7 +506,6 @@ fun AsyncFavicon(
                 )
             }
             else -> {
-                // Favicon bulunamadı - ilk harf göster
                 Text(
                     text = domain.firstOrNull()?.uppercase(Locale.getDefault()) ?: "?", 
                     fontWeight = FontWeight.Bold, 

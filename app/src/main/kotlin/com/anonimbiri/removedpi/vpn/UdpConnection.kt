@@ -1,6 +1,7 @@
 package com.anonimbiri.removedpi.vpn
 
 import android.net.VpnService
+import com.anonimbiri.removedpi.R
 import com.anonimbiri.removedpi.data.DpiSettings
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -9,25 +10,29 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class UdpConnection(
     private val vpnService: VpnService,
     private val vpnOutput: java.io.FileOutputStream,
-    private val settings: DpiSettings
+    @Volatile private var settings: DpiSettings
 ) {
     companion object {
         private const val TIMEOUT = 30000
         private const val MAX_PACKET_SIZE = 65535
     }
-    
+
     private val sessions = ConcurrentHashMap<String, UdpSession>()
     private val executor: ExecutorService = Executors.newCachedThreadPool()
     private val bytesIn = AtomicLong(0)
     private val bytesOut = AtomicLong(0)
-    
+    private val dnsCache = ConcurrentHashMap<String, InetAddress>()
+    private val settingsLock = ReentrantLock()
+
     @Volatile
     private var isRunning = true
-    
+
     data class UdpSession(
         val key: String,
         val socket: DatagramSocket,
@@ -37,50 +42,76 @@ class UdpConnection(
         val dstPort: Int,
         var lastActivity: Long = System.currentTimeMillis()
     )
-    
+
+    fun updateSettings(newSettings: DpiSettings) {
+        settingsLock.withLock {
+            settings = newSettings
+            if (settings.customDnsEnabled) {
+                dnsCache.clear()
+                try {
+                    dnsCache[settings.customDns] = InetAddress.getByName(settings.customDns)
+                    if (settings.customDns2.isNotEmpty()) {
+                        dnsCache[settings.customDns2] = InetAddress.getByName(settings.customDns2)
+                    }
+                } catch (e: Exception) {
+                    LogManager.e(vpnService.getString(R.string.log_dns_cache_error, e.message))
+                }
+            }
+        }
+    }
+
     fun processPacket(packet: Packet) {
         val payload = packet.getPayload()
         if (payload.isEmpty()) return
-        
-        // QUIC Engelleme Logu
-        if (settings.blockQuic && packet.destinationPort == 443) {
-            // Sürekli spam olmasın diye her paketi loglamayabilirsin ama
-            // kullanıcı "QUIC Engelle" çalışıyor mu görmek isterse bu log iyidir.
-            LogManager.w("QUIC Paketi Engellendi (UDP 443) -> ${packet.destinationAddress.hostAddress}")
+
+        val shouldBlockQuic = settingsLock.withLock { settings.blockQuic }
+        if (shouldBlockQuic && packet.destinationPort == 443) {
+            LogManager.w(vpnService.getString(R.string.log_quic_blocked, packet.destinationAddress.hostAddress))
             return
         }
-        
+
         try {
             val key = packet.connectionKey
             val session = sessions.getOrPut(key) { createSession(packet) }
-            
+
             session.lastActivity = System.currentTimeMillis()
-            
-            val destIp = if (packet.isDns && settings.customDnsEnabled) {
-                InetAddress.getByName(settings.customDns)
+
+            val destIp = if (packet.isDns) {
+                getDnsServer(packet)
             } else {
                 packet.destinationAddress
             }
-            
-            // DNS Logu
+
             if (packet.isDns) {
-                LogManager.i("DNS Sorgusu → $destIp")
+                LogManager.i(vpnService.getString(R.string.log_dns_query, destIp))
             }
-            
+
             val destPacket = DatagramPacket(payload, payload.size, destIp, packet.destinationPort)
             session.socket.send(destPacket)
             bytesOut.addAndGet(payload.size.toLong())
-            
+
         } catch (e: Exception) {
-            LogManager.e("UDP Hatası: ${e.message}")
+            LogManager.e(vpnService.getString(R.string.log_udp_error, e.message))
         }
     }
-    
+
+    private fun getDnsServer(packet: Packet): InetAddress {
+        return settingsLock.withLock {
+            if (settings.customDnsEnabled) {
+                dnsCache.getOrPut(settings.customDns) {
+                    InetAddress.getByName(settings.customDns)
+                }
+            } else {
+                packet.destinationAddress
+            }
+        }
+    }
+
     private fun createSession(packet: Packet): UdpSession {
         val socket = DatagramSocket()
         vpnService.protect(socket)
         socket.soTimeout = TIMEOUT
-        
+
         val session = UdpSession(
             key = packet.connectionKey,
             socket = socket,
@@ -92,12 +123,12 @@ class UdpConnection(
         startResponseListener(session)
         return session
     }
-    
+
     private fun startResponseListener(session: UdpSession) {
         executor.submit {
             val buffer = ByteArray(MAX_PACKET_SIZE)
             val receivePacket = DatagramPacket(buffer, buffer.size)
-            
+
             while (isRunning && sessions.containsKey(session.key)) {
                 try {
                     session.socket.receive(receivePacket)
@@ -112,12 +143,14 @@ class UdpConnection(
                             closeSession(session.key)
                             break
                         }
-                    } else { break }
+                    } else { 
+                        break 
+                    }
                 }
             }
         }
     }
-    
+
     private fun sendToClient(session: UdpSession, data: ByteArray) {
         val packet = PacketBuilder.buildUdpPacket(
             srcIp = session.dstIp,
@@ -133,20 +166,25 @@ class UdpConnection(
                 vpnOutput.write(packetData)
                 vpnOutput.flush()
             } catch (e: Exception) {
-                LogManager.e("VPN Yazma Hatası (UDP): ${e.message}")
+                LogManager.e(vpnService.getString(R.string.log_vpn_write_error_udp, e.message))
             }
         }
     }
-    
+
     private fun closeSession(key: String) {
-        sessions.remove(key)?.let { try { it.socket.close() } catch (e: Exception) {} }
+        sessions.remove(key)?.let { 
+            try { 
+                it.socket.close() 
+            } catch (e: Exception) {} 
+        }
     }
-    
+
     fun getStats(): Pair<Long, Long> = bytesIn.get() to bytesOut.get()
-    
+
     fun stop() {
         isRunning = false
         executor.shutdownNow()
         sessions.keys.toList().forEach { closeSession(it) }
+        dnsCache.clear()
     }
 }

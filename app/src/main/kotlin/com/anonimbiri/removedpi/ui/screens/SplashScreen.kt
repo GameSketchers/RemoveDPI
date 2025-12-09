@@ -1,4 +1,3 @@
-// ui/screens/SplashScreen.kt
 package com.anonimbiri.removedpi.ui.screens
 
 import androidx.compose.animation.core.*
@@ -16,6 +15,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,7 +29,6 @@ fun SplashScreen(
     var startLogoAnimation by remember { mutableStateOf(false) }
     var startBrandingAnimation by remember { mutableStateOf(false) }
     
-    // Logo animasyonları
     val logoScale by animateFloatAsState(
         targetValue = if (startLogoAnimation) 1f else 0.3f,
         animationSpec = tween(
@@ -45,7 +44,6 @@ fun SplashScreen(
         label = "logoAlpha"
     )
     
-    // Pulse animasyonu
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -57,7 +55,6 @@ fun SplashScreen(
         label = "pulseScale"
     )
     
-    // Branding animasyonları
     val brandingAlpha by animateFloatAsState(
         targetValue = if (startBrandingAnimation) 1f else 0f,
         animationSpec = tween(durationMillis = 500),
@@ -78,7 +75,7 @@ fun SplashScreen(
         startLogoAnimation = true
         delay(600)
         startBrandingAnimation = true
-        delay(1800) // Toplam ~2.5 saniye
+        delay(1800)
         onSplashFinished()
     }
     
@@ -86,7 +83,6 @@ fun SplashScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                // HomeScreen'deki gibi gradient arka plan
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.surface,
@@ -96,7 +92,6 @@ fun SplashScreen(
                 )
             )
     ) {
-        // Ortada Logo ve App Adı
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -104,10 +99,9 @@ fun SplashScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // App Logo - Icon olarak (tint ile renk alabilir)
             Icon(
                 painter = painterResource(id = R.drawable.ic_removedpi),
-                contentDescription = "App Logo",
+                contentDescription = stringResource(R.string.cd_app_logo),
                 modifier = Modifier
                     .size(160.dp)
                     .scale(logoScale * pulseScale)
@@ -117,9 +111,8 @@ fun SplashScreen(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // App Adı
             Text(
-                text = "Remove DPI",
+                text = stringResource(R.string.app_name),
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
@@ -130,9 +123,8 @@ fun SplashScreen(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            // Alt yazı
             Text(
-                text = "DPI Engellerini Kaldır",
+                text = stringResource(R.string.splash_subtitle),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,
@@ -140,7 +132,6 @@ fun SplashScreen(
             )
         }
         
-        // Altta Branding
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -151,17 +142,15 @@ fun SplashScreen(
                 },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ic_branding drawable
             Image(
                 painter = painterResource(id = R.drawable.ic_branding),
-                contentDescription = "by: Anonimbiri",
+                contentDescription = stringResource(R.string.cd_branding),
                 modifier = Modifier.height(24.dp)
             )
         }
     }
 }
 
-// Easing fonksiyonları
 private val EaseOutBack: Easing = CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
 private val EaseOutCubic: Easing = CubicBezierEasing(0.33f, 1f, 0.68f, 1f)
 private val EaseInOutSine: Easing = CubicBezierEasing(0.37f, 0f, 0.63f, 1f)

@@ -1,0 +1,171 @@
+<resources>
+    <string name="app_name">Remove DPI</string>
+    
+    <string name="status_connected">接続済み</string>
+    <string name="status_connecting">接続中...</string>
+    <string name="status_disconnected">未接続</string>
+    <string name="status_error">エラー</string>
+    <string name="label_packets">パケット</string>
+    <string name="label_download">ダウンロード</string>
+    <string name="label_upload">アップロード</string>
+
+    <string name="cd_logs">ログ</string>
+    <string name="cd_settings">設定</string>
+    <string name="home_status_connected">DPI制限が解除されました</string>
+    <string name="home_status_disconnected">タップして開始</string>
+    <string name="home_status_error">エラーが発生しました</string>
+    <string name="desc_connected">すべてのサイトにアクセス可能</string>
+    <string name="desc_connecting">お待ちください</string>
+    <string name="desc_disconnected">Remove DPIは無効です</string>
+    <string name="desc_error">設定を確認してください</string>
+    <string name="info_title">仕組み</string>
+    <string name="info_desc">Remove DPIは、インターネットトラフィックを断片化することでDPIシステムを回避します。SNI情報を分割してHTTPSブロックを克服します。</string>
+
+    <string name="screen_language_title">言語</string>
+    <string name="cd_back">戻る</string>
+    <string name="section_app_language">アプリの言語</string>
+    <string name="contrib_message">言語が見つからない場合は、翻訳して%1$s送信できます。</string>
+    <string name="contrib_link_text">ここから</string>
+    <string name="lang_system">システム</string>
+    <string name="lang_system_default">システムのデフォルト</string>
+    <string name="lang_turkish">トルコ語</string>
+    <string name="lang_english">英語</string>
+    <string name="lang_japanese">日本語</string>
+    <string name="lang_russian">ロシア語</string>
+
+    <string name="screen_logs_title">ログ</string>
+    <string name="cd_save">保存</string>
+    <string name="cd_clear">クリア</string>
+    <string name="toast_logs_saved">ログを保存しました</string>
+    <string name="toast_save_error">保存エラー: %1$s</string>
+
+    <string name="screen_settings_title">設定</string>
+    <string name="theme_title">テーマ</string>
+    <string name="theme_system">システム</string>
+    <string name="theme_amoled">Amoled</string>
+    <string name="theme_anime">アニメ</string>
+    <string name="lang_title">言語</string>
+    <string name="lang_desc">アプリの言語を変更</string>
+    <string name="cat_bypass">バイパス方法</string>
+    <string name="https_title">HTTPS Desync</string>
+    <string name="https_desc">安全な接続（TLS）を処理</string>
+    <string name="http_title">HTTP Desync</string>
+    <string name="http_desc">暗号化されていない接続を処理</string>
+    <string name="cat_advanced">詳細設定</string>
+    <string name="adv_split_pos">分割位置</string>
+    <string name="unit_byte">バイト</string>
+    <string name="adv_split_count">分割数</string>
+    <string name="adv_fake_hex">偽のHexデータ</string>
+    <string name="adv_fake_hex_desc">TLS ClientHelloの開始（例：160301）</string>
+    <string name="adv_fake_count">偽のパケット数</string>
+    <string name="adv_ttl">TTL値</string>
+    <string name="adv_delay">遅延 (ms)</string>
+    <string name="adv_host_mix">ホストの混合</string>
+    <string name="adv_host_mix_desc">Host -> hoSt</string>
+    <string name="cat_dns">DNSと接続</string>
+    <string name="dns_custom">カスタムDNS</string>
+    <string name="dns_custom_desc">広告ブロックとプライバシー</string>
+    <string name="dns_block_quic">QUICをブロック</string>
+    <string name="dns_block_quic_desc">YouTubeの高速化</string>
+    <string name="dns_tcp_nodelay">TCP NoDelay</string>
+    <string name="dns_tcp_nodelay_desc">待機せずにパケットを送信</string>
+    <string name="cat_exceptions">例外</string>
+    <string name="whitelist_title">ホワイトリスト</string>
+    <string name="whitelist_desc">除外したいサイト</string>
+    <string name="cat_system">システム</string>
+    <string name="sys_logging">ログ記録</string>
+    <string name="sys_logging_desc">デバッグログ</string>
+    <string name="sys_reset">デフォルトに戻す</string>
+    <string name="cat_about">概要</string>
+    <string name="about_dev">開発者</string>
+    <string name="about_repo_title">Github</string>
+    <string name="about_repo_desc">オープンソースリポジトリ</string>
+    <string name="about_update_title">更新</string>
+    <string name="about_update_desc">新しいバージョンを確認</string>
+
+    <string name="cd_app_logo">アプリのロゴ</string>
+    <string name="splash_subtitle">DPI制限を解除</string>
+    <string name="cd_branding">開発者: Anonimbiri</string>
+
+    <string name="screen_update_title">更新</string>
+    <string name="install_failed_msg">インストールに失敗しました: %1$s</string>
+    <string name="permission_title">インストールの許可が必要です</string>
+    <string name="permission_desc">更新をインストールするには、「不明なアプリのインストール」を有効にする必要があります。\n\n設定でこのアプリの許可を有効にしてから戻ってください。</string>
+    <string name="btn_go_settings">設定へ移動</string>
+    <string name="btn_cancel">キャンセル</string>
+    <string name="new_version_found">新しいバージョンが見つかりました: v%1$s</string>
+    <string name="already_latest">既に最新バージョンを使用しています</string>
+    <string name="check_failed">更新の確認に失敗しました: %1$s</string>
+    <string name="apk_url_not_found">APKダウンロードリンクが見つかりません</string>
+    <string name="error_prefix">エラー: %1$s</string>
+    <string name="status_latest">最新バージョンです</string>
+    <string name="new_version_available">新しいバージョンが利用可能です</string>
+    <string name="current_version_title">現在のバージョン</string>
+    <string name="build_type_debug">デバッグ</string>
+    <string name="build_type_release">リリース</string>
+    <string name="no_release_notes">このバージョンのリリースノートは見つかりませんでした。</string>
+    <string name="cd_app_icon">アプリアイコン</string>
+    <string name="checking_updates">更新を確認中...</string>
+    <string name="btn_install_now">今すぐインストール</string>
+    <string name="btn_download_update">更新をダウンロード (v%1$s)</string>
+    <string name="btn_check_updates">更新を確認</string>
+    <string name="time_remaining">残り時間の目安: %1$s</string>
+    <string name="badge_prerelease">プレリリース</string>
+    <string name="download_failed_http">ダウンロード失敗: HTTP %1$d</string>
+    <string name="download_error">ダウンロードエラー: %1$s</string>
+    <string name="time_fmt_seconds">%d 秒</string>
+    <string name="time_fmt_min_sec">%1$d 分 %2$d 秒</string>
+    <string name="time_fmt_hour_min">%1$d 時間 %2$d 分</string>
+
+    <string name="screen_whitelist_title">例外</string>
+    <string name="search_hint">例外を検索...</string>
+    <string name="no_results_found">結果が見つかりません</string>
+    <string name="dialog_add_site_title">サイトを追加</string>
+    <string name="dialog_edit_site_title">サイトを編集</string>
+    <string name="label_domain_hint">ドメイン (例: google.com)</string>
+    <string name="dialog_domain_desc">このサイトではDPI回避が無効になります。</string>
+    <string name="btn_add">追加</string>
+    <string name="btn_save">保存</string>
+    <string name="card_add_site">サイトを追加</string>
+
+    <string name="notif_channel_name">Remove DPI サービス</string>
+    <string name="notif_channel_desc">バックグラウンドVPNサービス</string>
+    <string name="notif_title">Remove DPI 有効</string>
+    <string name="notif_text">DPI制限を解除中</string>
+    <string name="action_stop">停止</string>
+    <string name="action_settings">設定</string>
+
+    <string name="log_whitelist_match">ホワイトリスト一致: %1$s (バイパス スキップ)</string>
+    <string name="log_bypass_split">BYPASS: %1$s 分割を適用 -> %2$s</string>
+    <string name="log_bypass_disorder">BYPASS: %1$s 順序変更を適用 -> %2$s</string>
+    <string name="log_bypass_fake">BYPASS: %1$s 偽パケット送信 -> %2$s</string>
+    <string name="log_bypass_ttl">BYPASS: %1$s TTL操作を適用 -> %2$s</string>
+    <string name="log_bypass_fake_split">BYPASS: %1$s 偽装+分割コンボを適用 -> %2$s</string>
+    <string name="log_error_bypass">バイパス エラー: %1$s</string>
+    <string name="log_error_sni">SNI 抽出エラー: %1$s</string>
+
+    <string name="tile_permission_error">アプリを開いてVPNの権限を許可してください。</string>
+    <string name="tile_error">エラー: %1$s</string>
+    <string name="tile_on">オン</string>
+    <string name="tile_off">オフ</string>
+
+    <string name="log_tcp_error">TCPエラー [%1$s]: %2$s</string>
+    <string name="log_tcp_start">TCPリクエスト開始 → %1$s</string>
+    <string name="log_conn_established">接続確立 ✓ %1$s</string>
+    <string name="log_conn_failed">接続失敗 (%1$s): %2$s</string>
+    <string name="log_server_closed">サーバーが接続を切断: %1$s</string>
+    <string name="log_read_error">データ読み取りエラー (%1$s): %2$s</string>
+    <string name="log_queue_full">%1$s の保留データキューがいっぱいです</string>
+    <string name="log_send_error">データ送信エラー: %1$s</string>
+    <string name="log_client_fin">クライアントが接続を終了 (FIN): %1$s</string>
+    <string name="log_vpn_write_error">VPN書き込みエラー: %1$s</string>
+
+    <string name="log_dns_cache_error">DNSキャッシュの更新に失敗しました: %1$s</string>
+    <string name="log_quic_blocked">QUICパケットがブロックされました (UDP 443) -> %1$s</string>
+    <string name="log_dns_query">DNSクエリ → %1$s</string>
+    <string name="log_udp_error">UDPエラー: %1$s</string>
+    <string name="log_vpn_write_error_udp">VPN書き込みエラー (UDP): %1$s</string>
+
+    <string name="update_available_msg">新しいバージョンが利用可能です: v%1$s</string>
+    <string name="action_update">更新</string>
+</resources>

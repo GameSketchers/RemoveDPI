@@ -1,3 +1,171 @@
 <resources>
     <string name="app_name">Remove DPI</string>
+    
+    <string name="status_connected">Bağlı</string>
+    <string name="status_connecting">Bağlanıyor...</string>
+    <string name="status_disconnected">Bağlı Değil</string>
+    <string name="status_error">Hata</string>
+    <string name="label_packets">Paketler</string>
+    <string name="label_download">İndirme</string>
+    <string name="label_upload">Yükleme</string>
+
+    <string name="cd_logs">Loglar</string>
+    <string name="cd_settings">Ayarlar</string>
+    <string name="home_status_connected">DPI Engelleri Kaldırıldı</string>
+    <string name="home_status_disconnected">Başlatmak İçin Dokunun</string>
+    <string name="home_status_error">Bir Hata Oluştu</string>
+    <string name="desc_connected">Tüm siteler erişilebilir</string>
+    <string name="desc_connecting">Lütfen bekleyin</string>
+    <string name="desc_disconnected">Remove DPI devre dışı</string>
+    <string name="desc_error">Ayarları kontrol edin</string>
+    <string name="info_title">Nasıl Çalışır?</string>
+    <string name="info_desc">Remove DPI, internet trafiğinizi parçalayarak DPI sistemlerini atlatır. SNI bilgisini bölerek HTTPS engellerini aşar.</string>
+
+    <string name="screen_language_title">Dil</string>
+    <string name="cd_back">Geri</string>
+    <string name="section_app_language">Uygulama Dili</string>
+    <string name="contrib_message">Dilinizi burada göremiyorsanız çevirip %1$s gönderebilirsiniz.</string>
+    <string name="contrib_link_text">buradan</string>
+    <string name="lang_system">Sistem</string>
+    <string name="lang_system_default">Sistem Varsayılanı</string>
+    <string name="lang_turkish">Türkçe</string>
+    <string name="lang_english">İngilizce</string>
+    <string name="lang_japanese">Japonca</string>
+    <string name="lang_russian">Rusça</string>
+
+    <string name="screen_logs_title">Log Kayıtları</string>
+    <string name="cd_save">Kaydet</string>
+    <string name="cd_clear">Temizle</string>
+    <string name="toast_logs_saved">Loglar kaydedildi</string>
+    <string name="toast_save_error">Kaydetme hatası: %1$s</string>
+
+    <string name="screen_settings_title">Ayarlar</string>
+    <string name="theme_title">Tema</string>
+    <string name="theme_system">Sistem</string>
+    <string name="theme_amoled">Amoled</string>
+    <string name="theme_anime">Anime</string>
+    <string name="lang_title">Dil</string>
+    <string name="lang_desc">Uygulama dilini değiştir</string>
+    <string name="cat_bypass">Bypass Yöntemi</string>
+    <string name="https_title">HTTPS Desync</string>
+    <string name="https_desc">Güvenli bağlantıları (TLS) işle</string>
+    <string name="http_title">HTTP Desync</string>
+    <string name="http_desc">Şifresiz bağlantıları işle</string>
+    <string name="cat_advanced">Gelişmiş</string>
+    <string name="adv_split_pos">Split Pozisyonu</string>
+    <string name="unit_byte">byte</string>
+    <string name="adv_split_count">Parça Sayısı</string>
+    <string name="adv_fake_hex">Fake Hex Verisi</string>
+    <string name="adv_fake_hex_desc">TLS ClientHello başlangıcı (örn: 160301)</string>
+    <string name="adv_fake_count">Fake Paket Sayısı</string>
+    <string name="adv_ttl">TTL Değeri</string>
+    <string name="adv_delay">Gecikme (ms)</string>
+    <string name="adv_host_mix">Host Karıştırma</string>
+    <string name="adv_host_mix_desc">Host -> hoSt</string>
+    <string name="cat_dns">DNS ve Bağlantı</string>
+    <string name="dns_custom">Özel DNS</string>
+    <string name="dns_custom_desc">Reklam engelleme ve gizlilik</string>
+    <string name="dns_block_quic">QUIC Engelle</string>
+    <string name="dns_block_quic_desc">YouTube hızlandırma</string>
+    <string name="dns_tcp_nodelay">TCP NoDelay</string>
+    <string name="dns_tcp_nodelay_desc">Paketleri bekletmeden gönder</string>
+    <string name="cat_exceptions">İstisnalar</string>
+    <string name="whitelist_title">Beyaz Liste</string>
+    <string name="whitelist_desc">Harici tutmak istediğiniz siteler</string>
+    <string name="cat_system">Sistem</string>
+    <string name="sys_logging">Loglama</string>
+    <string name="sys_logging_desc">Hata ayıklama kayıtları</string>
+    <string name="sys_reset">Varsayılan Ayarlara Dön</string>
+    <string name="cat_about">Hakkında</string>
+    <string name="about_dev">Geliştirici</string>
+    <string name="about_repo_title">Github</string>
+    <string name="about_repo_desc">Açık kaynak kod deposu</string>
+    <string name="about_update_title">Güncelleme</string>
+    <string name="about_update_desc">Yeni sürümleri kontrol et</string>
+
+    <string name="cd_app_logo">Uygulama Logosu</string>
+    <string name="splash_subtitle">DPI Engellerini Kaldır</string>
+    <string name="cd_branding">Geliştirici: Anonimbiri</string>
+
+    <string name="screen_update_title">Güncelleme</string>
+    <string name="install_failed_msg">Kurulum başlatılamadı: %1$s</string>
+    <string name="permission_title">Kurulum İzni Gerekli</string>
+    <string name="permission_desc">Güncellemeyi yükleyebilmek için \"Bilinmeyen uygulamalara izin ver\" ayarını etkinleştirmeniz gerekiyor.\n\nAyarlar açıldığında bu uygulama için izni etkinleştirin ve geri dönün.</string>
+    <string name="btn_go_settings">Ayarlara Git</string>
+    <string name="btn_cancel">İptal</string>
+    <string name="new_version_found">Yeni sürüm bulundu: v%1$s</string>
+    <string name="already_latest">Zaten en güncel sürümü kullanıyorsunuz</string>
+    <string name="check_failed">Güncelleme kontrolü başarısız: %1$s</string>
+    <string name="apk_url_not_found">APK indirme bağlantısı bulunamadı</string>
+    <string name="error_prefix">Hata: %1$s</string>
+    <string name="status_latest">En güncel sürümü kullanıyorsunuz</string>
+    <string name="new_version_available">Yeni Sürüm Mevcut</string>
+    <string name="current_version_title">Mevcut Sürüm</string>
+    <string name="build_type_debug">Debug</string>
+    <string name="build_type_release">Release</string>
+    <string name="no_release_notes">Bu sürümün değişiklik notları bulunamadı.</string>
+    <string name="cd_app_icon">Uygulama İkonu</string>
+    <string name="checking_updates">Güncellemeler kontrol ediliyor...</string>
+    <string name="btn_install_now">Şimdi Yükle</string>
+    <string name="btn_download_update">Güncellemeyi İndir (v%1$s)</string>
+    <string name="btn_check_updates">Güncellemeleri Kontrol Et</string>
+    <string name="time_remaining">Tahmini kalan süre: %1$s</string>
+    <string name="badge_prerelease">Pre-release</string>
+    <string name="download_failed_http">İndirme başarısız: HTTP %1$d</string>
+    <string name="download_error">İndirme hatası: %1$s</string>
+    <string name="time_fmt_seconds">%d saniye</string>
+    <string name="time_fmt_min_sec">%1$d dakika %2$d saniye</string>
+    <string name="time_fmt_hour_min">%1$d saat %2$d dakika</string>
+
+    <string name="screen_whitelist_title">İstisnalar</string>
+    <string name="search_hint">İstisnalarda ara...</string>
+    <string name="no_results_found">Sonuç bulunamadı</string>
+    <string name="dialog_add_site_title">Site Ekle</string>
+    <string name="dialog_edit_site_title">Site Düzenle</string>
+    <string name="label_domain_hint">Domain (örn: google.com)</string>
+    <string name="dialog_domain_desc">Bu site için DPI bypass devre dışı bırakılacak.</string>
+    <string name="btn_add">Ekle</string>
+    <string name="btn_save">Kaydet</string>
+    <string name="card_add_site">Site Ekle</string>
+
+    <string name="notif_channel_name">Remove DPI Servisi</string>
+    <string name="notif_channel_desc">Arka plan VPN servisi</string>
+    <string name="notif_title">Remove DPI Aktif</string>
+    <string name="notif_text">DPI engelleri kaldırılıyor</string>
+    <string name="action_stop">Durdur</string>
+    <string name="action_settings">Ayarlar</string>
+
+    <string name="log_whitelist_match">Beyaz Liste Eşleşmesi: %1$s (Bypass Atlandı)</string>
+    <string name="log_bypass_split">BYPASS: %1$s Split (Bölme) Uygulandı -> %2$s</string>
+    <string name="log_bypass_disorder">BYPASS: %1$s Disorder (Karıştırma) Uygulandı -> %2$s</string>
+    <string name="log_bypass_fake">BYPASS: %1$s Fake (Sahte) Paket Gönderildi -> %2$s</string>
+    <string name="log_bypass_ttl">BYPASS: %1$s TTL Manipülasyonu Uygulandı -> %2$s</string>
+    <string name="log_bypass_fake_split">BYPASS: %1$s Fake+Split Kombinasyonu Uygulandı -> %2$s</string>
+    <string name="log_error_bypass">Bypass Hatası: %1$s</string>
+    <string name="log_error_sni">SNI ayıklama hatası: %1$s</string>
+
+    <string name="tile_permission_error">Lütfen önce uygulamayı açıp VPN izni verin.</string>
+    <string name="tile_error">Hata: %1$s</string>
+    <string name="tile_on">Açık</string>
+    <string name="tile_off">Kapalı</string>
+
+    <string name="log_tcp_error">TCP Hatası [%1$s]: %2$s</string>
+    <string name="log_tcp_start">TCP İstek Başladı → %1$s</string>
+    <string name="log_conn_established">Bağlantı Kuruldu ✓ %1$s</string>
+    <string name="log_conn_failed">Bağlantı Başarısız (%1$s): %2$s</string>
+    <string name="log_server_closed">Sunucu Bağlantıyı Kapattı: %1$s</string>
+    <string name="log_read_error">Veri Okuma Hatası (%1$s): %2$s</string>
+    <string name="log_queue_full">%1$s için bekleyen veri kuyruğu dolu</string>
+    <string name="log_send_error">Veri Gönderme Hatası: %1$s</string>
+    <string name="log_client_fin">İstemci Bağlantıyı Sonlandırdı (FIN): %1$s</string>
+    <string name="log_vpn_write_error">VPN Yazma Hatası: %1$s</string>
+
+    <string name="log_dns_cache_error">DNS önbellek güncellemesi başarısız: %1$s</string>
+    <string name="log_quic_blocked">QUIC Paketi Engellendi (UDP 443) -> %1$s</string>
+    <string name="log_dns_query">DNS Sorgusu → %1$s</string>
+    <string name="log_udp_error">UDP Hatası: %1$s</string>
+    <string name="log_vpn_write_error_udp">VPN Yazma Hatası (UDP): %1$s</string>
+
+    <string name="update_available_msg">Yeni sürüm mevcut: v%1$s</string>
+    <string name="action_update">Güncelle</string>
 </resources>

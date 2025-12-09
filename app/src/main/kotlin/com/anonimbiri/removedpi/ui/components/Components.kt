@@ -20,8 +20,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.anonimbiri.removedpi.R
 import com.anonimbiri.removedpi.data.VpnState
 import com.anonimbiri.removedpi.ui.theme.VpnConnected
 import com.anonimbiri.removedpi.ui.theme.VpnConnecting
@@ -155,10 +157,10 @@ fun ConnectionStatusCard(
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = when (vpnState) {
-                        VpnState.CONNECTED -> "Bağlı"
-                        VpnState.CONNECTING -> "Bağlanıyor..."
-                        VpnState.DISCONNECTED -> "Bağlı Değil"
-                        VpnState.ERROR -> "Hata"
+                        VpnState.CONNECTED -> stringResource(R.string.status_connected)
+                        VpnState.CONNECTING -> stringResource(R.string.status_connecting)
+                        VpnState.DISCONNECTED -> stringResource(R.string.status_disconnected)
+                        VpnState.ERROR -> stringResource(R.string.status_error)
                     },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
@@ -176,17 +178,17 @@ fun ConnectionStatusCard(
                 ) {
                     StatItem(
                         icon = Icons.Outlined.Sync,
-                        label = "Paketler",
+                        label = stringResource(R.string.label_packets),
                         value = formatNumber(packetsProcessed)
                     )
                     StatItem(
                         icon = Icons.Outlined.ArrowDownward,
-                        label = "İndirme",
+                        label = stringResource(R.string.label_download),
                         value = formatBytes(bytesIn)
                     )
                     StatItem(
                         icon = Icons.Outlined.ArrowUpward,
-                        label = "Yükleme",
+                        label = stringResource(R.string.label_upload),
                         value = formatBytes(bytesOut)
                     )
                 }
@@ -223,8 +225,6 @@ private fun StatItem(
         )
     }
 }
-
-// === HELPER FUNCTIONS (BURAYA EKLENDİ) ===
 
 private fun formatBytes(bytes: Long): String {
     return when {

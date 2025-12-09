@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -89,17 +90,17 @@ fun HomeScreen(
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Remove DPI", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold)
                     }
                 },
                 actions = {
                     if (LogManager.enabled) {
                         IconButton(onClick = onNavigateToLogs) {
-                            Icon(Icons.Default.Article, "Loglar")
+                            Icon(Icons.Default.Article, stringResource(R.string.cd_logs))
                         }
                     }
                     IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, "Ayarlar")
+                        Icon(Icons.Default.Settings, stringResource(R.string.cd_settings))
                     }
                 }
             )
@@ -155,10 +156,10 @@ fun HomeScreen(
             ) { state ->
                 Text(
                     text = when (state) {
-                        VpnState.CONNECTED -> "DPI Engelleri Kaldırıldı"
-                        VpnState.CONNECTING -> "Bağlanıyor..."
-                        VpnState.DISCONNECTED -> "Başlatmak İçin Dokunun"
-                        VpnState.ERROR -> "Bir Hata Oluştu"
+                        VpnState.CONNECTED -> stringResource(R.string.home_status_connected)
+                        VpnState.CONNECTING -> stringResource(R.string.status_connecting)
+                        VpnState.DISCONNECTED -> stringResource(R.string.home_status_disconnected)
+                        VpnState.ERROR -> stringResource(R.string.home_status_error)
                     },
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
@@ -170,10 +171,10 @@ fun HomeScreen(
             
             Text(
                 text = when (vpnState) {
-                    VpnState.CONNECTED -> "Tüm siteler erişilebilir"
-                    VpnState.CONNECTING -> "Lütfen bekleyin"
-                    VpnState.DISCONNECTED -> "Remove DPI devre dışı"
-                    VpnState.ERROR -> "Ayarları kontrol edin"
+                    VpnState.CONNECTED -> stringResource(R.string.desc_connected)
+                    VpnState.CONNECTING -> stringResource(R.string.desc_connecting)
+                    VpnState.DISCONNECTED -> stringResource(R.string.desc_disconnected)
+                    VpnState.ERROR -> stringResource(R.string.desc_error)
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -209,13 +210,13 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            text = "Nasıl Çalışır?",
+                            text = stringResource(R.string.info_title),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Remove DPI, internet trafiğinizi parçalayarak DPI sistemlerini atlatır. SNI bilgisini bölerek HTTPS engellerini aşar.",
+                            text = stringResource(R.string.info_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

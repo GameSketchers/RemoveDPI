@@ -13,13 +13,24 @@ android {
         minSdk 24
         targetSdk 35
         versionCode 1
-        versionName '1.0.0-beta.2'
+        versionName '1.0.0-beta.3'
+    }
+    
+    signingConfigs {
+        release {
+            storeFile file("anonimbiri.jks") // Keystore dosyanın adı
+            storePassword "ZTqwJ7O2F5qER2e" // Şifreniz
+            keyAlias "anonimbiri" // Anahtarınız
+            keyPassword "ZTqwJ7O2F5qER2e" // Şifreniz
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            signingConfig signingConfigs.release // Şifre ve dosya yoktur sizin yüklemeniz gerekir
         }
     }
 
@@ -52,6 +63,10 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.8.0'
     implementation 'androidx.core:core-splashscreen:1.2.0'
+    
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    
+    implementation 'io.coil-kt:coil-compose:2.5.0'
     
     debugImplementation libs.androidx.ui.tooling
     debugImplementation libs.androidx.ui.test.manifest

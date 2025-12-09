@@ -1,0 +1,171 @@
+<resources>
+    <string name="app_name">Remove DPI</string>
+    
+    <string name="status_connected">Connected</string>
+    <string name="status_connecting">Connecting...</string>
+    <string name="status_disconnected">Disconnected</string>
+    <string name="status_error">Error</string>
+    <string name="label_packets">Packets</string>
+    <string name="label_download">Download</string>
+    <string name="label_upload">Upload</string>
+
+    <string name="cd_logs">Logs</string>
+    <string name="cd_settings">Settings</string>
+    <string name="home_status_connected">DPI Barriers Removed</string>
+    <string name="home_status_disconnected">Tap to Start</string>
+    <string name="home_status_error">An Error Occurred</string>
+    <string name="desc_connected">All sites are accessible</string>
+    <string name="desc_connecting">Please wait</string>
+    <string name="desc_disconnected">Remove DPI is disabled</string>
+    <string name="desc_error">Check settings</string>
+    <string name="info_title">How it works?</string>
+    <string name="info_desc">Remove DPI bypasses DPI systems by fragmenting your internet traffic. It splits SNI information to overcome HTTPS blocks.</string>
+
+    <string name="screen_language_title">Language</string>
+    <string name="cd_back">Back</string>
+    <string name="section_app_language">App Language</string>
+    <string name="contrib_message">If you don\'t see your language, you can translate and submit it %1$s.</string>
+    <string name="contrib_link_text">here</string>
+    <string name="lang_system">System</string>
+    <string name="lang_system_default">System Default</string>
+    <string name="lang_turkish">Turkish</string>
+    <string name="lang_english">English</string>
+    <string name="lang_japanese">Japanese</string>
+    <string name="lang_russian">Russian</string>
+
+    <string name="screen_logs_title">Logs</string>
+    <string name="cd_save">Save</string>
+    <string name="cd_clear">Clear</string>
+    <string name="toast_logs_saved">Logs saved</string>
+    <string name="toast_save_error">Save error: %1$s</string>
+
+    <string name="screen_settings_title">Settings</string>
+    <string name="theme_title">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_amoled">Amoled</string>
+    <string name="theme_anime">Anime</string>
+    <string name="lang_title">Language</string>
+    <string name="lang_desc">Change app language</string>
+    <string name="cat_bypass">Bypass Method</string>
+    <string name="https_title">HTTPS Desync</string>
+    <string name="https_desc">Process secure connections (TLS)</string>
+    <string name="http_title">HTTP Desync</string>
+    <string name="http_desc">Process unencrypted connections</string>
+    <string name="cat_advanced">Advanced</string>
+    <string name="adv_split_pos">Split Position</string>
+    <string name="unit_byte">byte</string>
+    <string name="adv_split_count">Split Count</string>
+    <string name="adv_fake_hex">Fake Hex Data</string>
+    <string name="adv_fake_hex_desc">TLS ClientHello start (e.g. 160301)</string>
+    <string name="adv_fake_count">Fake Packet Count</string>
+    <string name="adv_ttl">TTL Value</string>
+    <string name="adv_delay">Delay (ms)</string>
+    <string name="adv_host_mix">Host Mixing</string>
+    <string name="adv_host_mix_desc">Host -> hoSt</string>
+    <string name="cat_dns">DNS &amp; Connection</string>
+    <string name="dns_custom">Custom DNS</string>
+    <string name="dns_custom_desc">Ad blocking and privacy</string>
+    <string name="dns_block_quic">Block QUIC</string>
+    <string name="dns_block_quic_desc">YouTube acceleration</string>
+    <string name="dns_tcp_nodelay">TCP NoDelay</string>
+    <string name="dns_tcp_nodelay_desc">Send packets without waiting</string>
+    <string name="cat_exceptions">Exceptions</string>
+    <string name="whitelist_title">Whitelist</string>
+    <string name="whitelist_desc">Sites you want to exclude</string>
+    <string name="cat_system">System</string>
+    <string name="sys_logging">Logging</string>
+    <string name="sys_logging_desc">Debug logs</string>
+    <string name="sys_reset">Reset to Defaults</string>
+    <string name="cat_about">About</string>
+    <string name="about_dev">Developer</string>
+    <string name="about_repo_title">Github</string>
+    <string name="about_repo_desc">Open source repository</string>
+    <string name="about_update_title">Update</string>
+    <string name="about_update_desc">Check for new versions</string>
+
+    <string name="cd_app_logo">App Logo</string>
+    <string name="splash_subtitle">Remove DPI Barriers</string>
+    <string name="cd_branding">by: Anonimbiri</string>
+
+    <string name="screen_update_title">Update</string>
+    <string name="install_failed_msg">Installation failed: %1$s</string>
+    <string name="permission_title">Installation Permission Required</string>
+    <string name="permission_desc">To install the update, you need to enable \"Allow from unknown sources\".\n\nEnable the permission for this app in settings and return here.</string>
+    <string name="btn_go_settings">Go to Settings</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="new_version_found">New version found: v%1$s</string>
+    <string name="already_latest">You are already using the latest version</string>
+    <string name="check_failed">Update check failed: %1$s</string>
+    <string name="apk_url_not_found">APK download link not found</string>
+    <string name="error_prefix">Error: %1$s</string>
+    <string name="status_latest">You have the latest version</string>
+    <string name="new_version_available">New Version Available</string>
+    <string name="current_version_title">Current Version</string>
+    <string name="build_type_debug">Debug</string>
+    <string name="build_type_release">Release</string>
+    <string name="no_release_notes">No release notes found for this version.</string>
+    <string name="cd_app_icon">App Icon</string>
+    <string name="checking_updates">Checking for updates...</string>
+    <string name="btn_install_now">Install Now</string>
+    <string name="btn_download_update">Download Update (v%1$s)</string>
+    <string name="btn_check_updates">Check for Updates</string>
+    <string name="time_remaining">Estimated time remaining: %1$s</string>
+    <string name="badge_prerelease">Pre-release</string>
+    <string name="download_failed_http">Download failed: HTTP %1$d</string>
+    <string name="download_error">Download error: %1$s</string>
+    <string name="time_fmt_seconds">%d seconds</string>
+    <string name="time_fmt_min_sec">%1$d minutes %2$d seconds</string>
+    <string name="time_fmt_hour_min">%1$d hours %2$d minutes</string>
+
+    <string name="screen_whitelist_title">Exceptions</string>
+    <string name="search_hint">Search exceptions...</string>
+    <string name="no_results_found">No results found</string>
+    <string name="dialog_add_site_title">Add Site</string>
+    <string name="dialog_edit_site_title">Edit Site</string>
+    <string name="label_domain_hint">Domain (e.g. google.com)</string>
+    <string name="dialog_domain_desc">DPI bypass will be disabled for this site.</string>
+    <string name="btn_add">Add</string>
+    <string name="btn_save">Save</string>
+    <string name="card_add_site">Add Site</string>
+
+    <string name="notif_channel_name">Remove DPI Service</string>
+    <string name="notif_channel_desc">Background VPN service</string>
+    <string name="notif_title">Remove DPI Active</string>
+    <string name="notif_text">Removing DPI barriers</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="log_whitelist_match">Whitelist Match: %1$s (Bypass Skipped)</string>
+    <string name="log_bypass_split">BYPASS: %1$s Split Applied -> %2$s</string>
+    <string name="log_bypass_disorder">BYPASS: %1$s Disorder Applied -> %2$s</string>
+    <string name="log_bypass_fake">BYPASS: %1$s Fake Packet Sent -> %2$s</string>
+    <string name="log_bypass_ttl">BYPASS: %1$s TTL Manipulation Applied -> %2$s</string>
+    <string name="log_bypass_fake_split">BYPASS: %1$s Fake+Split Combo Applied -> %2$s</string>
+    <string name="log_error_bypass">Bypass Error: %1$s</string>
+    <string name="log_error_sni">SNI extraction error: %1$s</string>
+
+    <string name="tile_permission_error">Please open the app and grant VPN permission first.</string>
+    <string name="tile_error">Error: %1$s</string>
+    <string name="tile_on">On</string>
+    <string name="tile_off">Off</string>
+
+    <string name="log_tcp_error">TCP Error [%1$s]: %2$s</string>
+    <string name="log_tcp_start">TCP Request Started → %1$s</string>
+    <string name="log_conn_established">Connection Established ✓ %1$s</string>
+    <string name="log_conn_failed">Connection Failed (%1$s): %2$s</string>
+    <string name="log_server_closed">Server Closed Connection: %1$s</string>
+    <string name="log_read_error">Data Read Error (%1$s): %2$s</string>
+    <string name="log_queue_full">Pending data queue full for %1$s</string>
+    <string name="log_send_error">Data Send Error: %1$s</string>
+    <string name="log_client_fin">Client Terminated Connection (FIN): %1$s</string>
+    <string name="log_vpn_write_error">VPN Write Error: %1$s</string>
+
+    <string name="log_dns_cache_error">DNS cache update failed: %1$s</string>
+    <string name="log_quic_blocked">QUIC Packet Blocked (UDP 443) -> %1$s</string>
+    <string name="log_dns_query">DNS Query → %1$s</string>
+    <string name="log_udp_error">UDP Error: %1$s</string>
+    <string name="log_vpn_write_error_udp">VPN Write Error (UDP): %1$s</string>
+
+    <string name="update_available_msg">New version available: v%1$s</string>
+    <string name="action_update">Update</string>
+</resources>

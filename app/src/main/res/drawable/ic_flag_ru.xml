@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Beyaz şerit (üst) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M2,6h20v4H2z"/>
+    <!-- Mavi şerit (orta) -->
+    <path
+        android:fillColor="#0039A6"
+        android:pathData="M2,10h20v4H2z"/>
+    <!-- Kırmızı şerit (alt) -->
+    <path
+        android:fillColor="#D52B1E"
+        android:pathData="M2,14h20v4H2z"/>
+    <!-- Gri kenarlık (beyaz için) -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M2,6h20v0.3H2z"/>
+</vector>
