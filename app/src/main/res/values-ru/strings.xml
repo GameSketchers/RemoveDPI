@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Remove DPI</string>
-    
     <string name="status_connected">Подключено</string>
     <string name="status_connecting">Подключение...</string>
     <string name="status_disconnected">Не подключено</string>
@@ -8,7 +7,6 @@
     <string name="label_packets">Пакеты</string>
     <string name="label_download">Скачивание</string>
     <string name="label_upload">Загрузка</string>
-
     <string name="cd_logs">Логи</string>
     <string name="cd_settings">Настройки</string>
     <string name="home_status_connected">Ограничения DPI сняты</string>
@@ -20,7 +18,6 @@
     <string name="desc_error">Проверьте настройки</string>
     <string name="info_title">Как это работает?</string>
     <string name="info_desc">Remove DPI обходит системы DPI, фрагментируя ваш интернет-трафик. Он разделяет информацию SNI для преодоления блокировок HTTPS.</string>
-
     <string name="screen_language_title">Язык</string>
     <string name="cd_back">Назад</string>
     <string name="section_app_language">Язык приложения</string>
@@ -32,13 +29,11 @@
     <string name="lang_english">Английский</string>
     <string name="lang_japanese">Японский</string>
     <string name="lang_russian">Русский</string>
-
     <string name="screen_logs_title">Логи</string>
     <string name="cd_save">Сохранить</string>
     <string name="cd_clear">Очистить</string>
     <string name="toast_logs_saved">Логи сохранены</string>
     <string name="toast_save_error">Ошибка сохранения: %1$s</string>
-
     <string name="screen_settings_title">Настройки</string>
     <string name="theme_title">Тема</string>
     <string name="theme_system">Система</string>
@@ -47,6 +42,11 @@
     <string name="lang_title">Язык</string>
     <string name="lang_desc">Изменить язык приложения</string>
     <string name="cat_bypass">Метод обхода</string>
+    <string name="adv_fake_packet">Режим фейковых пакетов</string>
+    <string name="fake_none">Нет</string>
+    <string name="fake_seq">Неверный SEQ</string>
+    <string name="fake_chksum">Неверная контрольная сумма</string>
+    <string name="fake_both">Оба</string>
     <string name="https_title">HTTPS Desync</string>
     <string name="https_desc">Обработка безопасных соединений (TLS)</string>
     <string name="http_title">HTTP Desync</string>
@@ -55,20 +55,17 @@
     <string name="adv_split_pos">Позиция разделения</string>
     <string name="unit_byte">байт</string>
     <string name="adv_split_count">Количество частей</string>
-    <string name="adv_fake_hex">Фейковые Hex данные</string>
-    <string name="adv_fake_hex_desc">Начало TLS ClientHello (напр: 160301)</string>
-    <string name="adv_fake_count">Количество фейковых пакетов</string>
     <string name="adv_ttl">Значение TTL</string>
+    <string name="adv_auto_ttl">Автоматический TTL</string>
+    <string name="adv_min_ttl">Минимальный TTL</string>
     <string name="adv_delay">Задержка (мс)</string>
     <string name="adv_host_mix">Смешивание хоста</string>
     <string name="adv_host_mix_desc">Host -> hoSt</string>
-    <string name="cat_dns">DNS и подключение</string>
-    <string name="dns_custom">Пользовательский DNS</string>
-    <string name="dns_custom_desc">Блокировка рекламы и конфиденциальность</string>
-    <string name="dns_block_quic">Блокировать QUIC</string>
-    <string name="dns_block_quic_desc">Ускорение YouTube</string>
-    <string name="dns_tcp_nodelay">TCP NoDelay</string>
-    <string name="dns_tcp_nodelay_desc">Отправка пакетов без ожидания</string>
+    <string name="cat_network">Сеть</string>
+    <string name="net_block_quic">Блокировать QUIC</string>
+    <string name="net_block_quic_desc">Ускорение YouTube</string>
+    <string name="net_tcp_nodelay">TCP NoDelay</string>
+    <string name="net_tcp_nodelay_desc">Отправка пакетов без ожидания</string>
     <string name="cat_exceptions">Исключения</string>
     <string name="whitelist_title">Белый список</string>
     <string name="whitelist_desc">Сайты для исключения</string>
@@ -82,11 +79,9 @@
     <string name="about_repo_desc">Репозиторий с открытым кодом</string>
     <string name="about_update_title">Обновление</string>
     <string name="about_update_desc">Проверить наличие обновлений</string>
-
     <string name="cd_app_logo">Логотип приложения</string>
     <string name="splash_subtitle">Снять ограничения DPI</string>
     <string name="cd_branding">от: Anonimbiri</string>
-
     <string name="screen_update_title">Обновление</string>
     <string name="install_failed_msg">Ошибка установки: %1$s</string>
     <string name="permission_title">Требуется разрешение на установку</string>
@@ -116,7 +111,6 @@
     <string name="time_fmt_seconds">%d сек</string>
     <string name="time_fmt_min_sec">%1$d мин %2$d сек</string>
     <string name="time_fmt_hour_min">%1$d ч %2$d мин</string>
-
     <string name="screen_whitelist_title">Исключения</string>
     <string name="search_hint">Поиск исключений...</string>
     <string name="no_results_found">Результаты не найдены</string>
@@ -127,28 +121,26 @@
     <string name="btn_add">Добавить</string>
     <string name="btn_save">Сохранить</string>
     <string name="card_add_site">Добавить сайт</string>
-
     <string name="notif_channel_name">Служба Remove DPI</string>
     <string name="notif_channel_desc">Фоновая служба VPN</string>
     <string name="notif_title">Remove DPI Активен</string>
     <string name="notif_text">Устранение ограничений DPI</string>
     <string name="action_stop">Остановить</string>
     <string name="action_settings">Настройки</string>
-
     <string name="log_whitelist_match">Совпадение в белом списке: %1$s (Обход пропущен)</string>
     <string name="log_bypass_split">BYPASS: %1$s Разделение применено -> %2$s</string>
     <string name="log_bypass_disorder">BYPASS: %1$s Беспорядок применен -> %2$s</string>
-    <string name="log_bypass_fake">BYPASS: %1$s Фейковый пакет отправлен -> %2$s</string>
+    <string name="log_bypass_fake">BYPASS: %1$s SNI разделение применено -> %2$s</string>
     <string name="log_bypass_ttl">BYPASS: %1$s Манипуляция TTL применена -> %2$s</string>
-    <string name="log_bypass_fake_split">BYPASS: %1$s Фейк+Разделение применено -> %2$s</string>
+    <string name="log_bypass_fake_split">BYPASS: %1$s SNI+Разделение применено -> %2$s</string>
     <string name="log_error_bypass">Ошибка обхода: %1$s</string>
     <string name="log_error_sni">Ошибка извлечения SNI: %1$s</string>
-
+    <string name="log_bypass_sni">BYPASS: %1$s Фрагментация SNI применена -> %2$s</string>
+    <string name="log_bypass_sni_split">BYPASS: %1$s Комбинация SNI+Split применена -> %2$s</string>
     <string name="tile_permission_error">Пожалуйста, откройте приложение и предоставьте разрешение VPN.</string>
     <string name="tile_error">Ошибка: %1$s</string>
     <string name="tile_on">Вкл</string>
     <string name="tile_off">Выкл</string>
-
     <string name="log_tcp_error">Ошибка TCP [%1$s]: %2$s</string>
     <string name="log_tcp_start">Запрос TCP начат → %1$s</string>
     <string name="log_conn_established">Соединение установлено ✓ %1$s</string>
@@ -159,13 +151,13 @@
     <string name="log_send_error">Ошибка отправки данных: %1$s</string>
     <string name="log_client_fin">Клиент завершил соединение (FIN): %1$s</string>
     <string name="log_vpn_write_error">Ошибка записи VPN: %1$s</string>
-
-    <string name="log_dns_cache_error">Ошибка обновления кэша DNS: %1$s</string>
     <string name="log_quic_blocked">Пакет QUIC заблокирован (UDP 443) -> %1$s</string>
     <string name="log_dns_query">DNS Запрос → %1$s</string>
     <string name="log_udp_error">Ошибка UDP: %1$s</string>
     <string name="log_vpn_write_error_udp">Ошибка записи VPN (UDP): %1$s</string>
-
     <string name="update_available_msg">Доступна новая версия: v%1$s</string>
     <string name="action_update">Обновить</string>
+    <string name="log_fake_send_error">Ошибка отправки фейкового пакета: %1$s</string>
+    <string name="log_ttl_error">Ошибка установки TTL: %1$s</string>
+    <string name="log_ttl_fake_cancel">Не удалось установить TTL, фейковый пакет отменен</string>
 </resources>

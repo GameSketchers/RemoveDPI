@@ -17,6 +17,7 @@ import com.anonimbiri.removedpi.MainActivity
 import com.anonimbiri.removedpi.R
 import com.anonimbiri.removedpi.data.DesyncMethod
 import com.anonimbiri.removedpi.data.DpiSettings
+import com.anonimbiri.removedpi.data.FakePacketMode
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -98,28 +99,29 @@ class BypassVpnService : VpnService() {
     private fun loadSettingsDirectly() {
         try {
             val prefs = getSharedPreferences("dpi_prefs", Context.MODE_PRIVATE)
+            val defaults = DpiSettings()
             settings = DpiSettings(
-                bufferSize = prefs.getInt("buffer_size", 32768),
-                tcpFastOpen = prefs.getBoolean("tcp_fast_open", false),
-                enableTcpNodelay = prefs.getBoolean("tcp_nodelay", true),
+                bufferSize = prefs.getInt("buffer_size", defaults.bufferSize),
+                tcpFastOpen = prefs.getBoolean("tcp_fast_open", defaults.tcpFastOpen),
+                enableTcpNodelay = prefs.getBoolean("tcp_nodelay", defaults.enableTcpNodelay),
                 desyncMethod = try {
-                    DesyncMethod.valueOf(prefs.getString("desync_method", "SPLIT") ?: "SPLIT")
-                } catch (e: Exception) { DesyncMethod.SPLIT },
-                desyncHttp = prefs.getBoolean("desync_http", true),
-                desyncHttps = prefs.getBoolean("desync_https", true),
-                firstPacketSize = prefs.getInt("first_packet_size", 1),
-                splitDelay = prefs.getLong("split_delay", 2L),
-                mixHostCase = prefs.getBoolean("mix_host_case", true),
-                splitCount = prefs.getInt("split_count", 3),
-                fakeHex = prefs.getString("fake_hex", "160301") ?: "160301",
-                fakeCount = prefs.getInt("fake_count", 10),
-                ttlValue = prefs.getInt("ttl_value", 8),
-                customDnsEnabled = prefs.getBoolean("dns_enabled", false),
-                customDns = prefs.getString("dns1", "94.140.14.14") ?: "94.140.14.14",
-                customDns2 = prefs.getString("dns2", "94.140.15.15") ?: "94.140.15.15",
-                blockQuic = prefs.getBoolean("block_quic", true),
-                enableLogs = prefs.getBoolean("logs", true),
-                whitelist = prefs.getStringSet("whitelist", emptySet()) ?: emptySet()
+                    DesyncMethod.valueOf(prefs.getString("desync_method", null) ?: defaults.desyncMethod.name)
+                } catch (e: Exception) { defaults.desyncMethod },
+                desyncHttp = prefs.getBoolean("desync_http", defaults.desyncHttp),
+                desyncHttps = prefs.getBoolean("desync_https", defaults.desyncHttps),
+                firstPacketSize = prefs.getInt("first_packet_size", defaults.firstPacketSize),
+                splitDelay = prefs.getLong("split_delay", defaults.splitDelay),
+                mixHostCase = prefs.getBoolean("mix_host_case", defaults.mixHostCase),
+                splitCount = prefs.getInt("split_count", defaults.splitCount),
+                ttlValue = prefs.getInt("ttl_value", defaults.ttlValue),
+                autoTtl = prefs.getBoolean("auto_ttl", defaults.autoTtl),
+                minTtl = prefs.getInt("min_ttl", defaults.minTtl),
+                fakePacketMode = try {
+                    FakePacketMode.valueOf(prefs.getString("fake_packet_mode", null) ?: defaults.fakePacketMode.name)
+                } catch (e: Exception) { defaults.fakePacketMode },
+                blockQuic = prefs.getBoolean("block_quic", defaults.blockQuic),
+                enableLogs = prefs.getBoolean("logs", defaults.enableLogs),
+                whitelist = prefs.getStringSet("whitelist", null) ?: defaults.whitelist
             )
             Log.i(TAG, "Settings loaded")
         } catch (e: Exception) {
@@ -183,14 +185,8 @@ class BypassVpnService : VpnService() {
                 )
             )
 
-            if (settings.customDnsEnabled) {
-                builder.addDnsServer(settings.customDns)
-                if (settings.customDns2.isNotEmpty()) {
-                    builder.addDnsServer(settings.customDns2)
-                }
-            } else {
-                builder.addDnsServer("8.8.8.8")
-            }
+            builder.addDnsServer("8.8.8.8")
+            builder.addDnsServer("8.8.4.4")
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 builder.setMetered(false)
@@ -357,7 +353,7 @@ class BypassVpnService : VpnService() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.notif_title))
             .setContentText(getString(R.string.notif_text))
-            .setSmallIcon(R.drawable.ic_removedpi)
+            .setSmallIcon(R.mipmap.ic_removedpi_monochrome)
             .setContentIntent(openPendingIntent)
             .setUsesChronometer(true)
             .setWhen(startTime)

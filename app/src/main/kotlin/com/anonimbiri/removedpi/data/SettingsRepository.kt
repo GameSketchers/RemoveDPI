@@ -22,67 +22,59 @@ class SettingsRepository(context: Context) {
     }
 
     private fun loadSettings(): DpiSettings {
-    return DpiSettings(
-        appTheme = try {
-            AppTheme.valueOf(prefs.getString("app_theme", "SYSTEM") ?: "SYSTEM")
-        } catch (e: Exception) { AppTheme.SYSTEM },
+        val defaults = DpiSettings()
+        return DpiSettings(
+            appTheme = try {
+                AppTheme.valueOf(prefs.getString("app_theme", null) ?: defaults.appTheme.name)
+            } catch (e: Exception) { defaults.appTheme },
 
-        whitelist = prefs.getStringSet("whitelist", setOf(
-            "garanti.com.tr", "ziraatbank.com.tr", "isbank.com.tr", 
-            "yapikredi.com.tr", "akbank.com", "turkiye.gov.tr", 
-            "enabiz.gov.tr", "gib.gov.tr", "vakifbank.com.tr",
-            "halkbank.com.tr", "qnbfinansbank.com", "denizbank.com",
-            "teb.com.tr", "kuveytturk.com.tr", "turkcell.com.tr",
-            "vodafone.com.tr", "turktelekom.com.tr", "mhrs.gov.tr", "cimer.gov.tr"
-        )) ?: emptySet(),
+            whitelist = prefs.getStringSet("whitelist", null) ?: defaults.whitelist,
 
-        bufferSize = prefs.getInt("buffer_size", 32768),
-        tcpFastOpen = prefs.getBoolean("tcp_fast_open", false),
-        enableTcpNodelay = prefs.getBoolean("tcp_nodelay", true),
-        desyncMethod = try {
-            DesyncMethod.valueOf(prefs.getString("desync_method", "SPLIT") ?: "SPLIT")
-        } catch (e: Exception) { DesyncMethod.SPLIT },
-        desyncHttp = prefs.getBoolean("desync_http", true),
-        desyncHttps = prefs.getBoolean("desync_https", true),
-        firstPacketSize = prefs.getInt("first_packet_size", 1),
-        splitDelay = prefs.getLong("split_delay", 2L),
-        mixHostCase = prefs.getBoolean("mix_host_case", true),
-        splitCount = prefs.getInt("split_count", 3),
-        fakeHex = prefs.getString("fake_hex", "160301") ?: "160301",
-        fakeCount = prefs.getInt("fake_count", 10),
-        ttlValue = prefs.getInt("ttl_value", 8),
-        customDnsEnabled = prefs.getBoolean("dns_enabled", false),
-        customDns = prefs.getString("dns1", "94.140.14.14") ?: "94.140.14.14",
-        customDns2 = prefs.getString("dns2", "94.140.15.15") ?: "94.140.15.15",
-        blockQuic = prefs.getBoolean("block_quic", true),
-        enableLogs = prefs.getBoolean("logs", true)
-    )
-}
+            bufferSize = prefs.getInt("buffer_size", defaults.bufferSize),
+            tcpFastOpen = prefs.getBoolean("tcp_fast_open", defaults.tcpFastOpen),
+            enableTcpNodelay = prefs.getBoolean("tcp_nodelay", defaults.enableTcpNodelay),
+            desyncMethod = try {
+                DesyncMethod.valueOf(prefs.getString("desync_method", null) ?: defaults.desyncMethod.name)
+            } catch (e: Exception) { defaults.desyncMethod },
+            desyncHttp = prefs.getBoolean("desync_http", defaults.desyncHttp),
+            desyncHttps = prefs.getBoolean("desync_https", defaults.desyncHttps),
+            firstPacketSize = prefs.getInt("first_packet_size", defaults.firstPacketSize),
+            splitDelay = prefs.getLong("split_delay", defaults.splitDelay),
+            mixHostCase = prefs.getBoolean("mix_host_case", defaults.mixHostCase),
+            splitCount = prefs.getInt("split_count", defaults.splitCount),
+            ttlValue = prefs.getInt("ttl_value", defaults.ttlValue),
+            autoTtl = prefs.getBoolean("auto_ttl", defaults.autoTtl),
+            minTtl = prefs.getInt("min_ttl", defaults.minTtl),
+            fakePacketMode = try {
+                FakePacketMode.valueOf(prefs.getString("fake_packet_mode", null) ?: defaults.fakePacketMode.name)
+            } catch (e: Exception) { defaults.fakePacketMode },
+            blockQuic = prefs.getBoolean("block_quic", defaults.blockQuic),
+            enableLogs = prefs.getBoolean("logs", defaults.enableLogs)
+        )
+    }
 
-suspend fun updateSettings(settings: DpiSettings) {
-    val editor = prefs.edit()
-    editor.putString("app_theme", settings.appTheme.name)
-    editor.putStringSet("whitelist", settings.whitelist)
-    editor.putInt("buffer_size", settings.bufferSize)
-    editor.putBoolean("tcp_fast_open", settings.tcpFastOpen)
-    editor.putBoolean("tcp_nodelay", settings.enableTcpNodelay)
-    editor.putString("desync_method", settings.desyncMethod.name)
-    editor.putBoolean("desync_http", settings.desyncHttp)
-    editor.putBoolean("desync_https", settings.desyncHttps)
-    editor.putInt("first_packet_size", settings.firstPacketSize)
-    editor.putLong("split_delay", settings.splitDelay)
-    editor.putBoolean("mix_host_case", settings.mixHostCase)
-    editor.putInt("split_count", settings.splitCount)
-    editor.putString("fake_hex", settings.fakeHex)
-    editor.putInt("fake_count", settings.fakeCount)
-    editor.putInt("ttl_value", settings.ttlValue)
-    editor.putBoolean("dns_enabled", settings.customDnsEnabled)
-    editor.putString("dns1", settings.customDns)
-    editor.putString("dns2", settings.customDns2)
-    editor.putBoolean("block_quic", settings.blockQuic)
-    editor.putBoolean("logs", settings.enableLogs)
-    editor.commit()
-    
-    _settings.value = settings
-}
+    suspend fun updateSettings(settings: DpiSettings) {
+        val editor = prefs.edit()
+        editor.putString("app_theme", settings.appTheme.name)
+        editor.putStringSet("whitelist", settings.whitelist)
+        editor.putInt("buffer_size", settings.bufferSize)
+        editor.putBoolean("tcp_fast_open", settings.tcpFastOpen)
+        editor.putBoolean("tcp_nodelay", settings.enableTcpNodelay)
+        editor.putString("desync_method", settings.desyncMethod.name)
+        editor.putBoolean("desync_http", settings.desyncHttp)
+        editor.putBoolean("desync_https", settings.desyncHttps)
+        editor.putInt("first_packet_size", settings.firstPacketSize)
+        editor.putLong("split_delay", settings.splitDelay)
+        editor.putBoolean("mix_host_case", settings.mixHostCase)
+        editor.putInt("split_count", settings.splitCount)
+        editor.putInt("ttl_value", settings.ttlValue)
+        editor.putBoolean("auto_ttl", settings.autoTtl)
+        editor.putInt("min_ttl", settings.minTtl)
+        editor.putString("fake_packet_mode", settings.fakePacketMode.name)
+        editor.putBoolean("block_quic", settings.blockQuic)
+        editor.putBoolean("logs", settings.enableLogs)
+        editor.commit()
+        
+        _settings.value = settings
+    }
 }

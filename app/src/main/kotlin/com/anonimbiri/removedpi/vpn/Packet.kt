@@ -158,6 +158,7 @@ class Packet(buffer: ByteBuffer) {
                    (payload[1] == 0x03.toByte()) && 
                    (payload[5] == 0x01.toByte())
         }
+
     val isDns: Boolean
         get() = protocol == PROTOCOL_UDP && (destinationPort == 53 || sourcePort == 53)
 }

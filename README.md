@@ -1,58 +1,55 @@
 <div align="center">
 
-  <!-- App Logo -->
-  <img src="app/src/main/playstore-icon.png" width="150" alt="RemoveDPI Logo" />
-
-  <h1>🛡️ RemoveDPI</h1>
-  
-  <p><strong>DPI Bypass Tool for Android</strong></p>
+  <!-- Banner -->
+  <img src="app/src/main/original_github_banner.jpeg" alt="RemoveDPI Banner" width="100%" />
 
   <!-- Language Shields -->
   <p>
     <a href="README.md">
-      <img src="https://img.shields.io/badge/English-Active-007bff?style=for-the-badge" alt="English" />
+      <img src="https://img.shields.io/badge/🇬🇧_English-ffffff?style=for-the-badge&logoColor=000000" alt="English" />
     </a>
     <a href="README.tr.md">
-      <img src="https://img.shields.io/badge/Türkçe-Switch-gray?style=for-the-badge" alt="Turkish" />
+      <img src="https://img.shields.io/badge/🇹🇷_Türkçe-21262d?style=for-the-badge" alt="Turkish" />
     </a>
     <a href="README.ja.md">
-      <img src="https://img.shields.io/badge/日本語-Switch-gray?style=for-the-badge" alt="Japanese" />
+      <img src="https://img.shields.io/badge/🇯🇵_日本語-21262d?style=for-the-badge" alt="Japanese" />
     </a>
     <a href="README.ru.md">
-      <img src="https://img.shields.io/badge/Русский-Switch-gray?style=for-the-badge" alt="Russian" />
+      <img src="https://img.shields.io/badge/🇷🇺_Русский-21262d?style=for-the-badge" alt="Russian" />
     </a>
   </p>
 
   <!-- Dynamic Badges -->
   <p>
     <a href="https://github.com/GameSketchers/RemoveDPI/releases/latest">
-      <img src="https://img.shields.io/github/v/release/GameSketchers/RemoveDPI?style=for-the-badge&logo=github&logoColor=white&label=Version&color=ff0099" alt="Version" />
+      <img src="https://img.shields.io/github/v/release/GameSketchers/RemoveDPI?style=for-the-badge&logo=github&logoColor=ffffff&label=Version&color=21262d&labelColor=30363d" alt="Version" />
     </a>
     <a href="https://github.com/GameSketchers/RemoveDPI/releases">
-      <img src="https://img.shields.io/github/downloads/GameSketchers/RemoveDPI/total?style=for-the-badge&logo=download&logoColor=white&label=Downloads&color=ff0099" alt="Downloads" />
+      <img src="https://img.shields.io/github/downloads/GameSketchers/RemoveDPI/total?style=for-the-badge&logo=firebase&logoColor=ffffff&label=Downloads&color=21262d&labelColor=30363d" alt="Downloads" />
     </a>
     <a href="https://github.com/GameSketchers/RemoveDPI/stargazers">
-      <img src="https://img.shields.io/github/stars/GameSketchers/RemoveDPI?style=for-the-badge&logo=star&logoColor=white&label=Stars&color=ff0099" alt="Stars" />
+      <img src="https://img.shields.io/github/stars/GameSketchers/RemoveDPI?style=for-the-badge&logo=starship&logoColor=ffffff&label=Stars&color=21262d&labelColor=30363d" alt="Stars" />
     </a>
   </p>
 
+  <!-- Tech Badges -->
   <p>
     <a href="https://www.android.com">
-      <img src="https://img.shields.io/badge/Android_9+-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android" />
+      <img src="https://img.shields.io/badge/Android_9+-21262d?style=flat-square&logo=android&logoColor=3DDC84" alt="Android" />
     </a>
     <a href="https://kotlinlang.org">
-      <img src="https://img.shields.io/badge/Kotlin-7F52FF?style=flat-square&logo=kotlin&logoColor=white" alt="Kotlin" />
+      <img src="https://img.shields.io/badge/Kotlin-21262d?style=flat-square&logo=kotlin&logoColor=7F52FF" alt="Kotlin" />
     </a>
     <a href="https://github.com/GameSketchers/RemoveDPI/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/GameSketchers/RemoveDPI?style=flat-square&color=red" alt="License" />
+      <img src="https://img.shields.io/badge/GPL_3.0-21262d?style=flat-square&logo=gnu&logoColor=ffffff" alt="License" />
     </a>
-    <img src="https://img.shields.io/badge/Root-Not_Required-success?style=flat-square" alt="No Root" />
+    <img src="https://img.shields.io/badge/Root_Not_Required-21262d?style=flat-square&logo=shieldsdotio&logoColor=00C853" alt="No Root" />
   </p>
 
   <br />
 
   <a href="https://github.com/GameSketchers/RemoveDPI/releases/latest">
-    <img src="https://img.shields.io/badge/⬇_DOWNLOAD_APK-ff0099?style=for-the-badge&logoColor=white" alt="Download" />
+    <img src="https://img.shields.io/badge/⬇_DOWNLOAD_APK-ffffff?style=for-the-badge" alt="Download" />
   </a>
 
 </div>
@@ -82,6 +79,7 @@
   <img src="screenshots/en/2.jpg" width="24%" />
   <img src="screenshots/en/3.jpg" width="24%" />
   <img src="screenshots/en/4.jpg" width="24%" />
+  <img src="screenshots/en/5.jpg" width="24%" />
 </div>
 
 ---

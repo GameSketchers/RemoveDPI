@@ -13,25 +13,14 @@ android {
         minSdk 24
         targetSdk 35
         versionCode 1
-        versionName '1.0.0-beta.3'
-    }
-    
-    signingConfigs {
-        release {
-            storeFile file("anonimbiri.jks") // Keystore dosyanın adı
-            storePassword "ZTqwJ7O2F5qER2e" // Şifreniz
-            keyAlias "anonimbiri" // Anahtarınız
-            keyPassword "ZTqwJ7O2F5qER2e" // Şifreniz
-        }
+        versionName '1.0.0-beta.4'
     }
 
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            
-            signingConfig signingConfigs.release // Şifre ve dosya yoktur sizin yüklemeniz gerekir
-        }
+         }
     }
 
     buildFeatures {

@@ -200,9 +200,9 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilterChip(
-                                selected = settings.desyncMethod == DesyncMethod.FAKE,
-                                onClick = { updateSettings(settings.copy(desyncMethod = DesyncMethod.FAKE)) },
-                                label = { Text("FAKE") },
+                                selected = settings.desyncMethod == DesyncMethod.FRAG_BY_SNI,
+                                onClick = { updateSettings(settings.copy(desyncMethod = DesyncMethod.FRAG_BY_SNI)) },
+                                label = { Text("SNI FRAG") },
                                 modifier = Modifier.weight(1f)
                             )
                             FilterChip(
@@ -215,9 +215,9 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilterChip(
-                                selected = settings.desyncMethod == DesyncMethod.FAKE_SPLIT,
-                                onClick = { updateSettings(settings.copy(desyncMethod = DesyncMethod.FAKE_SPLIT)) },
-                                label = { Text("FAKE+SPLIT") },
+                                selected = settings.desyncMethod == DesyncMethod.SNI_SPLIT,
+                                onClick = { updateSettings(settings.copy(desyncMethod = DesyncMethod.SNI_SPLIT)) },
+                                label = { Text("SNI+SPLIT") },
                                 modifier = Modifier.weight(1f)
                             )
                             Spacer(modifier = Modifier.weight(1f))
@@ -244,7 +244,7 @@ fun SettingsScreen(
 
             item {
                 SettingsSection(title = stringResource(R.string.cat_advanced)) {
-                    if (settings.desyncMethod != DesyncMethod.DISORDER && settings.desyncMethod != DesyncMethod.TTL) {
+                    if (settings.desyncMethod == DesyncMethod.SPLIT || settings.desyncMethod == DesyncMethod.SNI_SPLIT) {
                         SettingsSliderRow(
                             stringResource(R.string.adv_split_pos),
                             settings.firstPacketSize.toFloat(), 
@@ -262,45 +262,35 @@ fun SettingsScreen(
                             "${settings.splitCount}"
                         )
                     }
-                    if (settings.desyncMethod == DesyncMethod.FAKE || settings.desyncMethod == DesyncMethod.FAKE_SPLIT) {
-                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                            Text(
-                                stringResource(R.string.adv_fake_hex),
-                                style = MaterialTheme.typography.bodyMedium, 
-                                fontWeight = FontWeight.Medium
+                    if (settings.desyncMethod == DesyncMethod.TTL || settings.autoTtl || settings.fakePacketMode != FakePacketMode.NONE) {
+                        SettingsSwitchRow(
+                            Icons.Default.Timer, 
+                            stringResource(R.string.adv_auto_ttl),
+                            null,
+                            settings.autoTtl
+                        ) { 
+                            updateSettings(settings.copy(autoTtl = it)) 
+                        }
+                        
+                        if (settings.autoTtl) {
+                            SettingsSliderRow(
+                                stringResource(R.string.adv_min_ttl),
+                                settings.minTtl.toFloat(), 
+                                1f..32f, 
+                                { updateSettings(settings.copy(minTtl = it.toInt())) }, 
+                                "${settings.minTtl}"
                             )
-                            OutlinedTextField(
-                                value = settings.fakeHex,
-                                onValueChange = { updateSettings(settings.copy(fakeHex = it)) },
-                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                                singleLine = true,
-                                placeholder = { Text("160301") },
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            Text(
-                                stringResource(R.string.adv_fake_hex_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(top = 4.dp)
+                        } else {
+                            SettingsSliderRow(
+                                stringResource(R.string.adv_ttl),
+                                settings.ttlValue.toFloat(), 
+                                1f..64f, 
+                                { updateSettings(settings.copy(ttlValue = it.toInt())) }, 
+                                "${settings.ttlValue}"
                             )
                         }
-                        SettingsSliderRow(
-                            stringResource(R.string.adv_fake_count),
-                            settings.fakeCount.toFloat(), 
-                            1f..20f, 
-                            { updateSettings(settings.copy(fakeCount = it.toInt())) }, 
-                            "${settings.fakeCount}"
-                        )
                     }
-                    if (settings.desyncMethod == DesyncMethod.TTL) {
-                        SettingsSliderRow(
-                            stringResource(R.string.adv_ttl),
-                            settings.ttlValue.toFloat(), 
-                            1f..64f, 
-                            { updateSettings(settings.copy(ttlValue = it.toInt())) }, 
-                            "${settings.ttlValue}"
-                        )
-                    }
+                    
                     SettingsSliderRow(
                         stringResource(R.string.adv_delay),
                         settings.splitDelay.toFloat(), 
@@ -316,48 +306,67 @@ fun SettingsScreen(
                     ) { 
                         updateSettings(settings.copy(mixHostCase = it)) 
                     }
-                }
-            }
-
-            item {
-                SettingsSection(title = stringResource(R.string.cat_dns)) {
-                    SettingsSwitchRow(
-                        Icons.Default.Dns, 
-                        stringResource(R.string.dns_custom),
-                        stringResource(R.string.dns_custom_desc),
-                        settings.customDnsEnabled
-                    ) { 
-                        updateSettings(settings.copy(customDnsEnabled = it)) 
-                    }
-                    if (settings.customDnsEnabled) {
-                        SingleChoiceRow(
-                            settings.customDns, 
-                            listOf(
-                                "94.140.14.14" to "AdGuard", 
-                                "76.76.2.2" to "Control D", 
-                                "1.1.1.1" to "Cloudflare"
-                            )
-                        ) { 
-                            val dns2 = when(it) { 
-                                "94.140.14.14" -> "94.140.15.15" 
-                                "76.76.2.2" -> "76.76.10.2" 
-                                else -> "1.0.0.1" 
+                    
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                    
+                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        Text(
+                            stringResource(R.string.adv_fake_packet),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        Column {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                FilterChip(
+                                    selected = settings.fakePacketMode == FakePacketMode.NONE,
+                                    onClick = { updateSettings(settings.copy(fakePacketMode = FakePacketMode.NONE)) },
+                                    label = { Text(stringResource(R.string.fake_none)) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                FilterChip(
+                                    selected = settings.fakePacketMode == FakePacketMode.WRONG_SEQ,
+                                    onClick = { updateSettings(settings.copy(fakePacketMode = FakePacketMode.WRONG_SEQ)) },
+                                    label = { Text(stringResource(R.string.fake_seq)) },
+                                    modifier = Modifier.weight(1f)
+                                )
                             }
-                            updateSettings(settings.copy(customDns = it, customDns2 = dns2)) 
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                FilterChip(
+                                    selected = settings.fakePacketMode == FakePacketMode.WRONG_CHKSUM,
+                                    onClick = { updateSettings(settings.copy(fakePacketMode = FakePacketMode.WRONG_CHKSUM)) },
+                                    label = { Text(stringResource(R.string.fake_chksum)) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                FilterChip(
+                                    selected = settings.fakePacketMode == FakePacketMode.BOTH,
+                                    onClick = { updateSettings(settings.copy(fakePacketMode = FakePacketMode.BOTH)) },
+                                    label = { Text(stringResource(R.string.fake_both)) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
                     }
+                }
+            }
+            item {
+                SettingsSection(title = stringResource(R.string.cat_network)) {
                     SettingsSwitchRow(
                         Icons.Outlined.Speed, 
-                        stringResource(R.string.dns_block_quic),
-                        stringResource(R.string.dns_block_quic_desc),
+                        stringResource(R.string.net_block_quic),
+                        stringResource(R.string.net_block_quic_desc),
                         settings.blockQuic
                     ) { 
                         updateSettings(settings.copy(blockQuic = it)) 
                     }
                     SettingsSwitchRow(
                         Icons.Outlined.Bolt, 
-                        stringResource(R.string.dns_tcp_nodelay),
-                        stringResource(R.string.dns_tcp_nodelay_desc),
+                        stringResource(R.string.net_tcp_nodelay),
+                        stringResource(R.string.net_tcp_nodelay_desc),
                         settings.enableTcpNodelay
                     ) { 
                         updateSettings(settings.copy(enableTcpNodelay = it)) 
@@ -430,7 +439,7 @@ fun SettingsScreen(
                                 .background(MaterialTheme.colorScheme.primaryContainer), 
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(painter = painterResource(id = R.drawable.ic_removedpi), null, tint = MaterialTheme.colorScheme.primary)
+                            Icon(painter = painterResource(id = R.mipmap.ic_removedpi_monochrome), null, tint = MaterialTheme.colorScheme.primary)
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {

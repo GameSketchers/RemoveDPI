@@ -476,7 +476,7 @@ private fun AppInfoCard(
         ) {
             
             Image(
-                painter = painterResource(id = R.drawable.ic_removedpi),
+                painter = painterResource(id = R.mipmap.ic_removedpi_monochrome),
                 contentDescription = stringResource(R.string.cd_app_icon),
                 modifier = Modifier.size(80.dp)
             )

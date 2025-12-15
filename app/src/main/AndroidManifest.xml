@@ -9,14 +9,22 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     
+    <uses-feature 
+       android:name="android.software.leanback"
+       android:required="false" />
+    <uses-feature 
+       android:name="android.hardware.touchscreen"
+       android:required="false" />
+    
     <application
         android:name=".DpiApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_removedpi"
-        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_removedpi_round"
-        android:supportsRtl="true"
+        android:banner="@drawable/ic_removedpi_tv_banner"
         android:logo="@mipmap/ic_removedpi"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
         android:theme="@style/Theme.RemoveDPI.Splash"
         android:localeConfig="@xml/locales_config"
         android:usesCleartextTraffic="true"
@@ -72,7 +80,7 @@
         
         <service
             android:name=".vpn.QuickTileService"
-            android:icon="@drawable/ic_removedpi"
+            android:icon="@mipmap/ic_removedpi_monochrome"
             android:label="Remove DPI"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:exported="true">

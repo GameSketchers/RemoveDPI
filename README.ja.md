@@ -1,58 +1,55 @@
 <div align="center">
 
-  <!-- App Logo -->
-  <img src="app/src/main/playstore-icon.png" width="150" alt="RemoveDPI Logo" />
-
-  <h1>🛡️ RemoveDPI</h1>
-  
-  <p><strong>Android用 DPI回避ツール</strong></p>
+  <!-- Banner -->
+  <img src="app/src/main/original_github_banner.jpeg" alt="RemoveDPI Banner" width="100%" />
 
   <!-- Language Shields -->
   <p>
     <a href="README.md">
-      <img src="https://img.shields.io/badge/English-Switch-gray?style=for-the-badge" alt="English" />
+      <img src="https://img.shields.io/badge/🇬🇧_English-21262d?style=for-the-badge" alt="English" />
     </a>
     <a href="README.tr.md">
-      <img src="https://img.shields.io/badge/Türkçe-Switch-gray?style=for-the-badge" alt="Turkish" />
+      <img src="https://img.shields.io/badge/🇹🇷_Türkçe-21262d?style=for-the-badge" alt="Turkish" />
     </a>
     <a href="README.ja.md">
-      <img src="https://img.shields.io/badge/日本語-Active-white?style=for-the-badge" alt="Japanese" />
+      <img src="https://img.shields.io/badge/🇯🇵_日本語-ffffff?style=for-the-badge&logoColor=000000" alt="Japanese" />
     </a>
     <a href="README.ru.md">
-      <img src="https://img.shields.io/badge/Русский-Switch-gray?style=for-the-badge" alt="Russian" />
+      <img src="https://img.shields.io/badge/🇷🇺_Русский-21262d?style=for-the-badge" alt="Russian" />
     </a>
   </p>
 
   <!-- Dynamic Badges -->
   <p>
     <a href="https://github.com/GameSketchers/RemoveDPI/releases/latest">
-      <img src="https://img.shields.io/github/v/release/GameSketchers/RemoveDPI?style=for-the-badge&logo=github&logoColor=white&label=バージョン&color=ff0099" alt="Version" />
+      <img src="https://img.shields.io/github/v/release/GameSketchers/RemoveDPI?style=for-the-badge&logo=github&logoColor=ffffff&label=バージョン&color=21262d&labelColor=30363d" alt="Version" />
     </a>
     <a href="https://github.com/GameSketchers/RemoveDPI/releases">
-      <img src="https://img.shields.io/github/downloads/GameSketchers/RemoveDPI/total?style=for-the-badge&logo=download&logoColor=white&label=ダウンロード&color=ff0099" alt="Downloads" />
+      <img src="https://img.shields.io/github/downloads/GameSketchers/RemoveDPI/total?style=for-the-badge&logo=firebase&logoColor=ffffff&label=ダウンロード&color=21262d&labelColor=30363d" alt="Downloads" />
     </a>
     <a href="https://github.com/GameSketchers/RemoveDPI/stargazers">
-      <img src="https://img.shields.io/github/stars/GameSketchers/RemoveDPI?style=for-the-badge&logo=star&logoColor=white&label=スター&color=ff0099" alt="Stars" />
+      <img src="https://img.shields.io/github/stars/GameSketchers/RemoveDPI?style=for-the-badge&logo=starship&logoColor=ffffff&label=スター&color=21262d&labelColor=30363d" alt="Stars" />
     </a>
   </p>
 
+  <!-- Tech Badges -->
   <p>
     <a href="https://www.android.com">
-      <img src="https://img.shields.io/badge/Android_9+-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android" />
+      <img src="https://img.shields.io/badge/Android_9+-21262d?style=flat-square&logo=android&logoColor=3DDC84" alt="Android" />
     </a>
     <a href="https://kotlinlang.org">
-      <img src="https://img.shields.io/badge/Kotlin-7F52FF?style=flat-square&logo=kotlin&logoColor=white" alt="Kotlin" />
+      <img src="https://img.shields.io/badge/Kotlin-21262d?style=flat-square&logo=kotlin&logoColor=7F52FF" alt="Kotlin" />
     </a>
     <a href="https://github.com/GameSketchers/RemoveDPI/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/GameSketchers/RemoveDPI?style=flat-square&color=red" alt="License" />
+      <img src="https://img.shields.io/badge/GPL_3.0-21262d?style=flat-square&logo=gnu&logoColor=ffffff" alt="License" />
     </a>
-    <img src="https://img.shields.io/badge/Root-不要-success?style=flat-square" alt="No Root" />
+    <img src="https://img.shields.io/badge/Root_不要-21262d?style=flat-square&logo=shieldsdotio&logoColor=00C853" alt="No Root" />
   </p>
 
   <br />
 
   <a href="https://github.com/GameSketchers/RemoveDPI/releases/latest">
-    <img src="https://img.shields.io/badge/⬇_APKをダウンロード-ff0099?style=for-the-badge&logoColor=white" alt="Download" />
+    <img src="https://img.shields.io/badge/⬇_APKをダウンロード-ffffff?style=for-the-badge" alt="Download" />
   </a>
 
 </div>
@@ -60,18 +57,18 @@
 <br />
 
 > [!IMPORTANT]
-> これはVPNではありません。IPを隠したりデータを暗号化したりするものではありません。ISPのDPI分析を回避して、ブロックされたサイトへのアクセスを可能にします。**速度低下はありません。**
+> これはVPNではありません。IPを隠したり、データを暗号化したりしません。ISPのDPI分析をバイパスしてブロックされたサイトへのアクセスを可能にします。**速度低下なし。**
 
 ---
 
-## ⚡ 特徴
+## ⚡ 機能
 
 | | |
 |:---|:---|
-| 🚫 **ブロック回避** | Discord、RedditなどのブロックされたサービスにVPNなしでアクセス |
-| 🚀 **スロットリング解除** | YouTube、Instagram、Xでの速度制限を無効化 |
-| ⚡ **ゼロ遅延** | リモートサーバーに接続しないため、Pingの増加なし |
-| 🔓 **Root不要** | Android 9以上のすべてのデバイスで動作 |
+| 🚫 **制限回避** | VPNなしでDiscord、Reddit、ブロックされたサービスにアクセス |
+| 🚀 **スロットリング解除** | YouTube、Instagram、Xの速度制限を無効化 |
+| ⚡ **ゼロレイテンシー** | リモートサーバーに接続しない、ping増加なし |
+| 🔓 **Root不要** | Android 9+のすべてのデバイスで動作 |
 
 ---
 
@@ -82,24 +79,25 @@
   <img src="screenshots/ja/2.jpg" width="24%" />
   <img src="screenshots/ja/3.jpg" width="24%" />
   <img src="screenshots/ja/4.jpg" width="24%" />
+  <img src="screenshots/ja/5.jpg" width="24%" />
 </div>
 
 ---
 
 ## 🎨 テーマ
 
-`Material You` · `アニメ` · `AMOLED`
+`Material You` · `Anime` · `AMOLED`
 
 ---
 
 ## 🛠️ 仕組み
 
 <details>
-<summary><strong>技術的詳細</strong></summary>
+<summary><strong>技術詳細</strong></summary>
 <br />
 
-- **TCPフラグメンテーション:** `ClientHello`パケットを断片化してDPI分析を防ぐ
-- **QUICブロック:** UDP 443ポートをブロックしてTCP経由の通信を強制
+- **TCP Fragmentation:** `ClientHello`パケットを分割してDPI分析を防止
+- **QUIC Block:** UDPポート443をブロックしてトラフィックをTCPに強制
 
 </details>
 
@@ -110,7 +108,7 @@
 1. [Releases](https://github.com/GameSketchers/RemoveDPI/releases/latest)からAPKをダウンロード
 2. インストールして開く
 3. **開始**ボタンを押す
-4. VPN権限を承認する
+4. VPN許可を承認
 
 ---
 
@@ -119,7 +117,7 @@
 | プロジェクト | 貢献 |
 |:---|:---|
 | [GoodbyeDPI](https://github.com/ValdikSS/GoodbyeDPI) | オリジナルコンセプト |
-| [GoodbyeDPI-Turkey](https://github.com/cagritaskn/GoodbyeDPI-Turkey) | 設定リファレンス |
+| [GoodbyeDPI-Turkey](https://github.com/cagritaskn/GoodbyeDPI-Turkey) | TR設定 |
 
 <div align="center">
   <br />
@@ -130,4 +128,4 @@
 
 ## ⚖️ 免責事項
 
-このソフトウェアは**教育目的**で開発されています。ユーザーは居住国の法律を遵守する責任があります。開発者は悪用について一切の責任を負いません。
+このソフトウェアは**教育目的**で開発されています。ユーザーは自国の法律を遵守する責任があります。開発者は誤用について責任を負いません。

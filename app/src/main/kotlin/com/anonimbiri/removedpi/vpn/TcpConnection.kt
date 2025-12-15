@@ -32,7 +32,6 @@ class TcpConnection(
     private val sessions = ConcurrentHashMap<String, TcpSession>()
     private val executor: ExecutorService = Executors.newFixedThreadPool(MAX_CONNECTIONS)
     private val settingsLock = ReentrantLock()
-
     @Volatile private var isRunning = true
     private val bytesIn = AtomicLong(0)
     private val bytesOut = AtomicLong(0)
@@ -207,14 +206,9 @@ class TcpConnection(
             if (!session.firstDataSent) {
                 session.firstDataSent = true
                 
-                val currentSettings = DpiSettings()
-                settingsLock.withLock {
-                    currentSettings
-                }.let { 
-                    // DpiBypass sınıfına context (vpnService) eklendi
-                    val bypass = DpiBypass(vpnService, settings)
-                    bypass.sendWithBypass(socket, data, session.isHttps)
-                }
+                val currentSettings = settingsLock.withLock { settings }
+                val bypass = DpiBypass(vpnService, currentSettings)
+                bypass.sendWithBypass(socket, data, session.isHttps)
             } else {
                 socket.getOutputStream().apply {
                     write(data)

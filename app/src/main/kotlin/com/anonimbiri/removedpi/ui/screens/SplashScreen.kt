@@ -100,7 +100,7 @@ fun SplashScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_removedpi),
+                painter = painterResource(id = R.mipmap.ic_removedpi_monochrome),
                 contentDescription = stringResource(R.string.cd_app_logo),
                 modifier = Modifier
                     .size(160.dp)

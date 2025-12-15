@@ -27,7 +27,6 @@ class UdpConnection(
     private val executor: ExecutorService = Executors.newCachedThreadPool()
     private val bytesIn = AtomicLong(0)
     private val bytesOut = AtomicLong(0)
-    private val dnsCache = ConcurrentHashMap<String, InetAddress>()
     private val settingsLock = ReentrantLock()
 
     @Volatile
@@ -46,17 +45,6 @@ class UdpConnection(
     fun updateSettings(newSettings: DpiSettings) {
         settingsLock.withLock {
             settings = newSettings
-            if (settings.customDnsEnabled) {
-                dnsCache.clear()
-                try {
-                    dnsCache[settings.customDns] = InetAddress.getByName(settings.customDns)
-                    if (settings.customDns2.isNotEmpty()) {
-                        dnsCache[settings.customDns2] = InetAddress.getByName(settings.customDns2)
-                    }
-                } catch (e: Exception) {
-                    LogManager.e(vpnService.getString(R.string.log_dns_cache_error, e.message))
-                }
-            }
         }
     }
 
@@ -65,9 +53,12 @@ class UdpConnection(
         if (payload.isEmpty()) return
 
         val shouldBlockQuic = settingsLock.withLock { settings.blockQuic }
+        
         if (shouldBlockQuic && packet.destinationPort == 443) {
-            LogManager.w(vpnService.getString(R.string.log_quic_blocked, packet.destinationAddress.hostAddress))
-            return
+            if (isQuicPacket(payload)) {
+                LogManager.w(vpnService.getString(R.string.log_quic_blocked, packet.destinationAddress.hostAddress))
+                return
+            }
         }
 
         try {
@@ -76,17 +67,11 @@ class UdpConnection(
 
             session.lastActivity = System.currentTimeMillis()
 
-            val destIp = if (packet.isDns) {
-                getDnsServer(packet)
-            } else {
-                packet.destinationAddress
-            }
-
             if (packet.isDns) {
-                LogManager.i(vpnService.getString(R.string.log_dns_query, destIp))
+                LogManager.i(vpnService.getString(R.string.log_dns_query, packet.destinationAddress.hostAddress))
             }
 
-            val destPacket = DatagramPacket(payload, payload.size, destIp, packet.destinationPort)
+            val destPacket = DatagramPacket(payload, payload.size, packet.destinationAddress, packet.destinationPort)
             session.socket.send(destPacket)
             bytesOut.addAndGet(payload.size.toLong())
 
@@ -95,16 +80,13 @@ class UdpConnection(
         }
     }
 
-    private fun getDnsServer(packet: Packet): InetAddress {
-        return settingsLock.withLock {
-            if (settings.customDnsEnabled) {
-                dnsCache.getOrPut(settings.customDns) {
-                    InetAddress.getByName(settings.customDns)
-                }
-            } else {
-                packet.destinationAddress
-            }
+    private fun isQuicPacket(payload: ByteArray): Boolean {
+        if (payload.size < 1200) return false
+        val firstByte = payload[0].toInt() and 0xFF
+        if ((firstByte and 0xC0) == 0xC0 && payload.size > 1 && payload[1].toInt() == 0x01) {
+            return true
         }
+        return false
     }
 
     private fun createSession(packet: Packet): UdpSession {
@@ -185,6 +167,5 @@ class UdpConnection(
         isRunning = false
         executor.shutdownNow()
         sessions.keys.toList().forEach { closeSession(it) }
-        dnsCache.clear()
     }
 }
