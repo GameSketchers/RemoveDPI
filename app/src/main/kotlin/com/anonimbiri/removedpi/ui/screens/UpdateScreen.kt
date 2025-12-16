@@ -6,22 +6,69 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.NewReleases
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,10 +76,19 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
@@ -47,7 +103,8 @@ import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
+import java.util.TimeZone
 
 data class DownloadState(
     val isDownloading: Boolean = false,
@@ -784,76 +841,525 @@ private fun ReleaseCard(
 
 @Composable
 fun MarkdownText(markdown: String) {
+    val uriHandler = LocalUriHandler.current
     val lines = markdown.split("\n")
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        lines.forEach { line ->
-            when {
-                line.startsWith("## ") -> {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        line.removePrefix("## "),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                line.startsWith("### ") -> {
-                    Text(
-                        line.removePrefix("### "),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-                line.startsWith("- ") || line.startsWith("* ") -> {
-                    val text = line.removePrefix("- ").removePrefix("* ")
-                    Row(modifier = Modifier.padding(start = 8.dp)) {
-                        Text("• ", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                        Text(
-                            cleanMarkdownFormatting(text),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+    
+    var floatingImageUrl: String? = null
+    var floatingImageWidth = 120
+    var floatingImageHeight = 150
+    val contentBeforeImage = mutableListOf<String>()
+    val contentAfterImageAll = mutableListOf<String>()
+    var foundImage = false
+    
+    for (line in lines) {
+        if (!foundImage && line.contains("<img") && line.contains("src=") && 
+            (line.contains("align=\"right\"") || line.contains("align='right'"))) {
+            foundImage = true
+            floatingImageUrl = extractImageUrl(line)
+            floatingImageWidth = extractImageWidth(line) ?: 120
+            floatingImageHeight = extractImageHeight(line) ?: 150
+        } else if (!foundImage) {
+            contentBeforeImage.add(line)
+        } else {
+            contentAfterImageAll.add(line)
+        }
+    }
+    
+    val avgLineHeight = 32
+    val linesNextToImage = (floatingImageHeight / avgLineHeight).coerceIn(3, 10)
+    
+    val contentBesideImage = contentAfterImageAll.take(linesNextToImage)
+    val contentAfterImage = contentAfterImageAll.drop(linesNextToImage)
+    
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        contentBeforeImage.forEach { line ->
+            RenderMarkdownLine(line, uriHandler)
+        }
+        
+        if (floatingImageUrl != null && floatingImageUrl.isNotBlank()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    contentBesideImage.forEach { line ->
+                        RenderMarkdownLine(line, uriHandler)
                     }
                 }
-                line.startsWith("![") && line.contains("](") -> {
-                    val imageUrl = line.substringAfter("](").substringBefore(")")
-                    if (imageUrl.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        AsyncImage(
-                            model = imageUrl,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp)),
-                            contentScale = ContentScale.FillWidth
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
-                line.startsWith("**") && line.endsWith("**") -> {
-                    Text(
-                        line.removeSurrounding("**"),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                line.isNotBlank() && !line.startsWith("http") && !line.contains("Full Changelog") -> {
-                    Text(
-                        cleanMarkdownFormatting(line),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                
+                AsyncImage(
+                    model = floatingImageUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(floatingImageWidth.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+                    contentScale = ContentScale.Fit
+                )
+            }
+            
+            contentAfterImage.forEach { line ->
+                RenderMarkdownLine(line, uriHandler)
+            }
+        } else {
+            contentAfterImageAll.forEach { line ->
+                RenderMarkdownLine(line, uriHandler)
             }
         }
     }
 }
 
-private fun cleanMarkdownFormatting(text: String): String {
+@Composable
+private fun RenderMarkdownLine(line: String, uriHandler: UriHandler) {
+    when {
+        line.trim().startsWith("```") -> { }
+        
+        line.startsWith("# ") && !line.startsWith("## ") -> {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                line.removePrefix("# "),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+        
+        line.startsWith("## ") && !line.startsWith("### ") -> {
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                line.removePrefix("## "),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+        }
+        
+        line.startsWith("### ") && !line.startsWith("#### ") -> {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                line.removePrefix("### "),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        
+        line.startsWith("#### ") -> {
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                line.removePrefix("#### "),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        
+        line.startsWith("> ") -> {
+            BlockQuote(line.removePrefix("> "), uriHandler)
+        }
+        
+        line.startsWith("- [x] ") || line.startsWith("* [x] ") -> {
+            CheckboxItem(
+                text = line.removePrefix("- [x] ").removePrefix("* [x] "),
+                checked = true,
+                uriHandler = uriHandler
+            )
+        }
+        
+        line.startsWith("- [ ] ") || line.startsWith("* [ ] ") -> {
+            CheckboxItem(
+                text = line.removePrefix("- [ ] ").removePrefix("* [ ] "),
+                checked = false,
+                uriHandler = uriHandler
+            )
+        }
+        
+        line.startsWith("- ") || line.startsWith("* ") -> {
+            val text = line.removePrefix("- ").removePrefix("* ")
+            val indent = line.takeWhile { it == ' ' }.length / 2
+            BulletItem(text = text, indent = indent, uriHandler = uriHandler)
+        }
+        
+        line.matches(Regex("^\\d+\\.\\s.*")) -> {
+            val number = line.substringBefore(".").trim()
+            val text = line.substringAfter(".").trim()
+            NumberedItem(number = number, text = text, uriHandler = uriHandler)
+        }
+        
+        line.startsWith("![") && line.contains("](") -> {
+            val altText = line.substringAfter("![").substringBefore("]")
+            val imageUrl = line.substringAfter("](").substringBefore(")")
+            if (imageUrl.isNotBlank()) {
+                MarkdownImage(url = imageUrl, altText = altText, maxWidth = 200)
+            }
+        }
+        
+        line.contains("<img") && line.contains("src=") && 
+        !line.contains("align=\"right\"") && !line.contains("align='right'") -> {
+            val imageUrl = extractImageUrl(line)
+            val width = extractImageWidth(line)
+            val height = extractImageHeight(line)
+            if (imageUrl.isNotBlank()) {
+                MarkdownImage(
+                    url = imageUrl,
+                    altText = extractImageAlt(line),
+                    maxWidth = width ?: 200,
+                    maxHeight = height
+                )
+            }
+        }
+        
+        line.trim() == "---" || line.trim() == "***" || line.trim() == "___" -> {
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth(),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        
+        line.contains("|") && line.count { it == '|' } >= 2 -> {
+            TableRow(line)
+        }
+        
+        line.isNotBlank() && !line.startsWith("http") && !line.contains("Full Changelog") &&
+        !line.contains("<img") -> {
+            ClickableMarkdownText(
+                text = line,
+                uriHandler = uriHandler,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClickableMarkdownText(
+    text: String,
+    uriHandler: UriHandler,
+    style: TextStyle = MaterialTheme.typography.bodyMedium,
+    color: Color = MaterialTheme.colorScheme.onSurfaceVariant
+) {
+    val linkColor = MaterialTheme.colorScheme.primary
+    val annotatedString = buildClickableText(text, linkColor, color)
+    
+    if (annotatedString.getStringAnnotations("URL", 0, annotatedString.length).isNotEmpty()) {
+        ClickableText(
+            text = annotatedString,
+            style = style,
+            onClick = { offset ->
+                annotatedString.getStringAnnotations("URL", offset, offset)
+                    .firstOrNull()?.let { annotation ->
+                        try {
+                            uriHandler.openUri(annotation.item)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+            }
+        )
+    } else {
+        Text(
+            text = cleanMarkdownFormatting(text),
+            style = style,
+            color = color
+        )
+    }
+}
+
+private fun buildClickableText(
+    text: String,
+    linkColor: Color,
+    defaultColor: Color
+): AnnotatedString {
+    return buildAnnotatedString {
+        val cleanText = StringBuilder()
+        val linkPattern = Regex("\\[([^]]+)]\\(([^)]+)\\)")
+        val matches = linkPattern.findAll(text)
+        
+        var lastEnd = 0
+        val annotations = mutableListOf<Triple<Int, Int, String>>()
+        
+        for (match in matches) {
+            val beforeLink = text.substring(lastEnd, match.range.first)
+            cleanText.append(cleanMarkdownFormattingSimple(beforeLink))
+            
+            val linkText = match.groupValues[1]
+            val linkUrl = match.groupValues[2]
+            
+            val linkStart = cleanText.length
+            cleanText.append(linkText)
+            val linkEnd = cleanText.length
+            
+            annotations.add(Triple(linkStart, linkEnd, linkUrl))
+            
+            lastEnd = match.range.last + 1
+        }
+        
+        if (lastEnd < text.length) {
+            cleanText.append(cleanMarkdownFormattingSimple(text.substring(lastEnd)))
+        }
+        
+        append(cleanText.toString())
+        
+        addStyle(
+            style = SpanStyle(color = defaultColor),
+            start = 0,
+            end = cleanText.length
+        )
+        
+        for ((start, end, url) in annotations) {
+            addStyle(
+                style = SpanStyle(
+                    color = linkColor,
+                    textDecoration = TextDecoration.Underline
+                ),
+                start = start,
+                end = end
+            )
+            addStringAnnotation(
+                tag = "URL",
+                annotation = url,
+                start = start,
+                end = end
+            )
+        }
+    }
+}
+
+private fun cleanMarkdownFormattingSimple(text: String): String {
     return text
         .replace(Regex("`([^`]+)`"), "$1")
         .replace(Regex("\\*\\*([^*]+)\\*\\*"), "$1")
-        .replace(Regex("\\*([^*]+)\\*"), "$1")
         .replace(Regex("__([^_]+)__"), "$1")
+        .replace(Regex("\\*([^*]+)\\*"), "$1")
         .replace(Regex("_([^_]+)_"), "$1")
+        .replace(Regex("~~([^~]+)~~"), "$1")
+}
+
+@Composable
+private fun MarkdownImage(
+    url: String,
+    altText: String,
+    maxWidth: Int,
+    maxHeight: Int? = null
+) {
+    Spacer(modifier = Modifier.height(8.dp))
+    AsyncImage(
+        model = url,
+        contentDescription = altText.ifBlank { null },
+        modifier = Modifier
+            .widthIn(max = maxWidth.dp)
+            .then(if (maxHeight != null) Modifier.heightIn(max = maxHeight.dp) else Modifier)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+        contentScale = ContentScale.Fit
+    )
+    if (altText.isNotBlank()) {
+        Text(
+            text = altText,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+}
+
+@Composable
+private fun CodeBlock(code: String) {
+    Spacer(modifier = Modifier.height(8.dp))
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(
+            text = code,
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(12.dp),
+            style = MaterialTheme.typography.bodySmall,
+            fontFamily = FontFamily.Monospace,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+}
+
+@Composable
+private fun BlockQuote(text: String, uriHandler: UriHandler) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .height(IntrinsicSize.Min)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .fillMaxHeight()
+                .background(
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                    RoundedCornerShape(2.dp)
+                )
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        ClickableMarkdownText(
+            text = text,
+            uriHandler = uriHandler,
+            style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun BulletItem(text: String, indent: Int = 0, uriHandler: UriHandler) {
+    Row(
+        modifier = Modifier.padding(start = (indent * 16).dp, top = 2.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        val bulletChar = when (indent) {
+            0 -> "•"
+            1 -> "◦"
+            else -> "▪"
+        }
+        Text(
+            text = bulletChar,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.width(16.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        ClickableMarkdownText(
+            text = text,
+            uriHandler = uriHandler,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@Composable
+private fun NumberedItem(number: String, text: String, uriHandler: UriHandler) {
+    Row(
+        modifier = Modifier.padding(top = 2.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Text(
+            text = "$number.",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.width(24.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        ClickableMarkdownText(
+            text = text,
+            uriHandler = uriHandler,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@Composable
+private fun CheckboxItem(text: String, checked: Boolean, uriHandler: UriHandler) {
+    Row(
+        modifier = Modifier.padding(top = 2.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = if (checked) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        ClickableMarkdownText(
+            text = text,
+            uriHandler = uriHandler,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                textDecoration = if (checked) TextDecoration.LineThrough else TextDecoration.None
+            ),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@Composable
+private fun TableRow(line: String) {
+    val cells = line.split("|").filter { it.isNotBlank() }.map { it.trim() }
+    val isHeader = line.contains("---")
+    
+    if (isHeader) {
+        HorizontalDivider(
+            thickness = 2.dp,
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+        return
+    }
+    
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        cells.forEach { cell ->
+            Text(
+                text = cleanMarkdownFormatting(cell),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+private fun extractImageUrl(line: String): String {
+    val regex = Regex("""src=["']([^"']+)["']""")
+    return regex.find(line)?.groupValues?.getOrNull(1) ?: ""
+}
+
+private fun extractImageWidth(line: String): Int? {
+    val regex = Regex("""width=["']?(\d+)["']?""")
+    return regex.find(line)?.groupValues?.getOrNull(1)?.toIntOrNull()
+}
+
+private fun extractImageHeight(line: String): Int? {
+    val regex = Regex("""height=["']?(\d+)["']?""")
+    return regex.find(line)?.groupValues?.getOrNull(1)?.toIntOrNull()
+}
+
+private fun extractImageAlt(line: String): String {
+    val regex = Regex("""alt=["']([^"']+)["']""")
+    return regex.find(line)?.groupValues?.getOrNull(1) ?: ""
+}
+
+private fun cleanMarkdownFormatting(text: String): String {
+    return text
+        .replace(Regex("!\\[([^]]*)]\\([^)]+\\)"), "")
+        .replace(Regex("<img[^>]*>"), "")
+        .replace(Regex("```[\\s\\S]*?```"), "")
+        .replace(Regex("`([^`]+)`"), "$1")
+        .replace(Regex("\\*\\*([^*]+)\\*\\*"), "$1")
+        .replace(Regex("__([^_]+)__"), "$1")
+        .replace(Regex("\\*([^*]+)\\*"), "$1")
+        .replace(Regex("_([^_]+)_"), "$1")
+        .replace(Regex("~~([^~]+)~~"), "$1")
+        .replace(Regex("\\[([^]]+)]\\([^)]+\\)"), "$1")
+        .replace(Regex("^#{1,6}\\s*"), "")
+        .replace(Regex("^>\\s*"), "")
+        .trim()
 }
 
 private suspend fun downloadApk(
