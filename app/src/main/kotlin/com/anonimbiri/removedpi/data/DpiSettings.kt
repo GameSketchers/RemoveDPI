@@ -5,7 +5,7 @@ data class DpiSettings(
     val tcpFastOpen: Boolean = false,
     val enableTcpNodelay: Boolean = true,
     
-    val appTheme: AppTheme = AppTheme.SYSTEM,
+    val appTheme: AppTheme = AppTheme.AMOLED,
     
     val whitelist: Set<String> = setOf(
         "turkiye.gov.tr", "giris.turkiye.gov.tr",

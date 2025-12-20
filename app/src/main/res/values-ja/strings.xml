@@ -160,4 +160,13 @@
     <string name="log_fake_send_error">偽パケットの送信に失敗しました: %1$s</string>
     <string name="log_ttl_error">TTL設定エラー: %1$s</string>
     <string name="log_ttl_fake_cancel">TTLを設定できませんでした。偽パケットはキャンセルされました</string>
+    
+    <!-- TV -->
+    <string name="nav_home">ホーム</string>
+    <string name="nav_logs">ログ</string>
+    <string name="whitelist_empty">リストは空です</string>
+    <string name="btn_retry">再試行</string>
+    <string name="scroll_instruction">%1$s キーでスクロール</string>
+    <string name="enter_domain_title">ドメインを入力</string>
+    <string name="enter_domain_desc">DPI回避を無効にするサイトのアドレス (例: google.com)</string>
 </resources>

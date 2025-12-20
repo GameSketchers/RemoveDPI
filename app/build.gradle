@@ -12,15 +12,15 @@ android {
         applicationId 'com.anonimbiri.removedpi'
         minSdk 24
         targetSdk 35
-        versionCode 1
-        versionName '1.0.0-beta.4'
+        versionCode 1000
+        versionName '1.0.0'
     }
 
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-         }
+        }
     }
 
     buildFeatures {
@@ -56,6 +56,12 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
     
     implementation 'io.coil-kt:coil-compose:2.5.0'
+    
+    // TV Support
+    implementation "androidx.leanback:leanback:1.0.0"
+    implementation "androidx.leanback:leanback-preference:1.0.0"
+    implementation "androidx.tv:tv-foundation:1.0.0-alpha10"
+    implementation "androidx.tv:tv-material:1.0.0-alpha10"
     
     debugImplementation libs.androidx.ui.tooling
     debugImplementation libs.androidx.ui.test.manifest

@@ -360,6 +360,7 @@ class BypassVpnService : VpnService() {
             .setChronometerCountDown(false)
             .setOngoing(true)
             .setSilent(false)
+            .setOnlyAlertOnce(true)
             .addAction(R.drawable.ic_stop, getString(R.string.action_stop), stopPendingIntent)
             .addAction(R.drawable.ic_settings, getString(R.string.action_settings), settingsPendingIntent)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)

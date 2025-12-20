@@ -160,4 +160,13 @@
     <string name="log_fake_send_error">Sahte paket gönderilemedi: %1$s</string>
     <string name="log_ttl_error">TTL ayarlama hatası: %1$s</string>
     <string name="log_ttl_fake_cancel">TTL ayarlanamadı, sahte paket iptal edildi</string>
+    
+    <!-- TV -->
+    <string name="nav_home">Ana Sayfa</string>
+    <string name="nav_logs">Loglar</string>
+    <string name="whitelist_empty">Liste boş</string>
+    <string name="btn_retry">Tekrar Dene</string>
+    <string name="scroll_instruction">%1$s tuşları ile kaydırın</string>
+    <string name="enter_domain_title">Domain Adresi Girin</string>
+    <string name="enter_domain_desc">DPI bypass işleminin devre dışı bırakılacağı site adresi (örn: google.com)</string>
 </resources>

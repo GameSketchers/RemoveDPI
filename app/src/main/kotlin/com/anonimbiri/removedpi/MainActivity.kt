@@ -24,10 +24,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.tv.material3.ExperimentalTvMaterial3Api
 import com.anonimbiri.removedpi.data.DpiSettings
 import com.anonimbiri.removedpi.data.SettingsRepository
 import com.anonimbiri.removedpi.ui.screens.*
 import com.anonimbiri.removedpi.ui.theme.RemoveDPITheme
+import com.anonimbiri.removedpi.ui.theme.RemoveDPITvTheme
 import com.anonimbiri.removedpi.update.ReleaseInfo
 import com.anonimbiri.removedpi.update.UpdateManager
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -49,6 +51,7 @@ class MainActivity : ComponentActivity() {
 
     private var startDestination = "home"
 
+    @OptIn(ExperimentalTvMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
 
@@ -58,57 +61,68 @@ class MainActivity : ComponentActivity() {
         requestNotificationPermissionIfNeeded()
 
         startDestination = getDestinationFromIntent(intent)
-        Log.d(TAG, "onCreate - startDestination: $startDestination, action: ${intent?.action}")
+        
+        // Detect if we are on TV
+        val isTv = packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
 
         val repository = SettingsRepository(applicationContext)
 
         setContent {
-            val settings by repository.settings.collectAsState(initial = DpiSettings())
-            
-            var updateInfo by remember { mutableStateOf<ReleaseInfo?>(null) }
-            var isUpdateChecked by remember { mutableStateOf(false) }
-            var showSplash by remember { mutableStateOf(true) }
-            var showUpdateSnackbar by remember { mutableStateOf(false) }
-
-            LaunchedEffect(Unit) {
-                try {
-                    Log.d(TAG, "Checking for updates...")
-                    val result = UpdateManager.checkForUpdates(applicationContext)
-                    updateInfo = result
-                    Log.d(TAG, "Update check result: ${result?.version ?: "No update"}")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Update check failed: ${e.message}")
-                } finally {
-                    isUpdateChecked = true
+            if (isTv) {
+                // TV UI Entry Point
+                RemoveDPITvTheme {
+                    androidx.tv.material3.Surface(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        TvMainScreen()
+                    }
                 }
-            }
+            } else {
+                // Phone UI Entry Point
+                val settings by repository.settings.collectAsState(initial = DpiSettings())
+                
+                var updateInfo by remember { mutableStateOf<ReleaseInfo?>(null) }
+                var isUpdateChecked by remember { mutableStateOf(false) }
+                var showSplash by remember { mutableStateOf(true) }
+                var showUpdateSnackbar by remember { mutableStateOf(false) }
 
-            LaunchedEffect(updateInfo, isUpdateChecked) {
-                if (isUpdateChecked && updateInfo != null) {
-                    Log.d(TAG, "Update available, showing snackbar")
-                    showUpdateSnackbar = true
+                LaunchedEffect(Unit) {
+                    try {
+                        val result = UpdateManager.checkForUpdates(applicationContext)
+                        updateInfo = result
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Update check failed: ${e.message}")
+                    } finally {
+                        isUpdateChecked = true
+                    }
                 }
-            }
 
-            RemoveDPITheme(themeMode = settings.appTheme) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    if (showSplash) {
-                        SplashScreen(
-                            onSplashFinished = {
-                                showSplash = false
-                            }
-                        )
-                    } else {
-                        RemoveDpiApp(
-                            startDestination = startDestination,
-                            navigationEventFlow = navigationEvent,
-                            updateInfo = updateInfo,
-                            showUpdateSnackbar = showUpdateSnackbar,
-                            onUpdateSnackbarDismissed = { showUpdateSnackbar = false }
-                        )
+                LaunchedEffect(updateInfo, isUpdateChecked) {
+                    if (isUpdateChecked && updateInfo != null) {
+                        showUpdateSnackbar = true
+                    }
+                }
+
+                RemoveDPITheme(themeMode = settings.appTheme) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        if (showSplash) {
+                            SplashScreen(
+                                onSplashFinished = {
+                                    showSplash = false
+                                }
+                            )
+                        } else {
+                            RemoveDpiApp(
+                                startDestination = startDestination,
+                                navigationEventFlow = navigationEvent,
+                                updateInfo = updateInfo,
+                                showUpdateSnackbar = showUpdateSnackbar,
+                                onUpdateSnackbarDismissed = { showUpdateSnackbar = false }
+                            )
+                        }
                     }
                 }
             }
@@ -120,8 +134,6 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
 
         val destination = getDestinationFromIntent(intent)
-        Log.d(TAG, "onNewIntent - destination: $destination, action: ${intent.action}")
-
         if (destination == "settings") {
             lifecycleScope.launch {
                 _navigationEvent.emit("settings")
@@ -143,7 +155,6 @@ class MainActivity : ComponentActivity() {
 
     private fun getDestinationFromIntent(intent: Intent?): String {
         if (intent == null) return "home"
-
         return when (intent.action) {
             "android.service.quicksettings.action.QS_TILE_PREFERENCES" -> "settings"
             "OPEN_SETTINGS" -> "settings"
@@ -167,7 +178,6 @@ fun RemoveDpiApp(
 
     LaunchedEffect(Unit) {
         navigationEventFlow.collect { destination ->
-            Log.d("RemoveDpiApp", "Navigation event: $destination")
             navController.navigate(destination) {
                 launchSingleTop = true
             }
@@ -176,8 +186,6 @@ fun RemoveDpiApp(
 
     LaunchedEffect(showUpdateSnackbar, updateInfo) {
         if (showUpdateSnackbar && updateInfo != null) {
-            Log.d("RemoveDpiApp", "Showing update snackbar for version: ${updateInfo.version}")
-            
             val result = snackbarHostState.showSnackbar(
                 message = context.getString(R.string.update_available_msg, updateInfo.version),
                 actionLabel = context.getString(R.string.action_update),
@@ -186,14 +194,11 @@ fun RemoveDpiApp(
             
             when (result) {
                 SnackbarResult.ActionPerformed -> {
-                    Log.d("RemoveDpiApp", "Snackbar action clicked, navigating to update")
                     navController.navigate("update/true") {
                         launchSingleTop = true
                     }
                 }
-                SnackbarResult.Dismissed -> {
-                    Log.d("RemoveDpiApp", "Snackbar dismissed")
-                }
+                SnackbarResult.Dismissed -> { }
             }
             
             onUpdateSnackbarDismissed()
@@ -286,8 +291,6 @@ fun AppNavHost(
             )
         ) { backStackEntry ->
             val autoDownload = backStackEntry.arguments?.getBoolean("autoDownload") ?: false
-            Log.d("AppNavHost", "UpdateScreen opened, autoDownload: $autoDownload")
-            
             UpdateScreen(
                 releaseInfo = updateInfo,
                 onNavigateBack = { navController.popBackStack() },

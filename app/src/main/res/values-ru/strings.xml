@@ -160,4 +160,13 @@
     <string name="log_fake_send_error">Ошибка отправки фейкового пакета: %1$s</string>
     <string name="log_ttl_error">Ошибка установки TTL: %1$s</string>
     <string name="log_ttl_fake_cancel">Не удалось установить TTL, фейковый пакет отменен</string>
+    
+    <!-- TV -->
+    <string name="nav_home">Главная</string>
+    <string name="nav_logs">Логи</string>
+    <string name="whitelist_empty">Список пуст</string>
+    <string name="btn_retry">Повторить</string>
+    <string name="scroll_instruction">Прокручивайте клавишами %1$s</string>
+    <string name="enter_domain_title">Введите домен</string>
+    <string name="enter_domain_desc">Адрес сайта, для которого будет отключен обход DPI (например, google.com)</string>
 </resources>

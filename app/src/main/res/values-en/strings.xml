@@ -160,4 +160,13 @@
     <string name="log_fake_send_error">Fake packet send failed: %1$s</string>
     <string name="log_ttl_error">TTL set failed: %1$s</string>
     <string name="log_ttl_fake_cancel">TTL could not be set, fake packet cancelled</string>
+    
+    <!-- TV -->
+    <string name="nav_home">Home</string>
+    <string name="nav_logs">Logs</string>
+    <string name="whitelist_empty">List is empty</string>
+    <string name="btn_retry">Retry</string>
+    <string name="scroll_instruction">Scroll using %1$s keys</string>
+    <string name="enter_domain_title">Enter Domain</string>
+    <string name="enter_domain_desc">Site address where DPI bypass will be disabled (e.g. google.com)</string>
 </resources>
