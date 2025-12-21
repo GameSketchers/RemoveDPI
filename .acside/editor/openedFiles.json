@@ -1,0 +1,50 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/RemoveDPI/app/src/main/kotlin/com/anonimbiri/removedpi/ui/screens/TvScreens.kt",
+      "selection": {
+        "end": {
+          "column": 15,
+          "index": 83303,
+          "line": 1562
+        },
+        "start": {
+          "column": 15,
+          "index": 83303,
+          "line": 1562
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/RemoveDPI/build.gradle",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/RemoveDPI/app/build.gradle",
+      "selection": {
+        "end": {
+          "column": 5,
+          "index": 373,
+          "line": 16
+        },
+        "start": {
+          "column": 5,
+          "index": 373,
+          "line": 16
+        }
+      }
+    }
+  ],
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/RemoveDPI/app/build.gradle"
+}

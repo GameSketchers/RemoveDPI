@@ -6,8 +6,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.net.VpnService
 import android.os.Build
@@ -43,22 +41,28 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex // EKLENDİ: Z-Index hatası için gerekli
 import androidx.core.content.FileProvider
 import androidx.tv.material3.*
+import coil.compose.AsyncImage
 import com.anonimbiri.removedpi.R
 import com.anonimbiri.removedpi.data.*
 import com.anonimbiri.removedpi.ui.theme.*
@@ -91,6 +95,22 @@ data class TvDownloadState(
     val error: String? = null
 )
 
+// --- KENARLIK ANİMASYONU ---
+@Composable
+fun rememberAnimatedBorderAlpha(): Float {
+    val infiniteTransition = rememberInfiniteTransition(label = "borderPulse")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.2f, 
+        targetValue = 1.0f,  
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "borderAlpha"
+    )
+    return alpha
+}
+
 @Composable
 fun TvMainScreen() {
     val context = LocalContext.current
@@ -100,11 +120,34 @@ fun TvMainScreen() {
     var currentTab by remember { mutableStateOf(TvTab.HOME) }
     var isSettingsOpen by remember { mutableStateOf(false) }
     var isFirstLaunch by remember { mutableStateOf(true) }
+    
+    // Güncelleme Bildirimi State'leri
+    var updateInfo by remember { mutableStateOf<ReleaseInfo?>(null) }
+    var showUpdateNotification by remember { mutableStateOf(false) }
+
+    val borderAlpha = rememberAnimatedBorderAlpha()
 
     LaunchedEffect(Unit) {
         repository.settings.collect { 
             settings = it
             LogManager.enabled = it.enableLogs
+        }
+    }
+    
+    // Güncelleme Kontrolü
+    LaunchedEffect(Unit) {
+        delay(2000) // Uygulama açıldıktan biraz sonra kontrol et
+        try {
+            val info = UpdateManager.checkForUpdates(context)
+            if (info != null) {
+                updateInfo = info
+                showUpdateNotification = true
+                // 8 saniye sonra bildirimi gizle
+                delay(8000)
+                showUpdateNotification = false
+            }
+        } catch (e: Exception) {
+            Log.e("TvMain", "Update check failed", e)
         }
     }
 
@@ -123,7 +166,8 @@ fun TvMainScreen() {
                     currentTab = currentTab,
                     onTabSelected = { currentTab = it },
                     onSettingsClick = { isSettingsOpen = true },
-                    showLogs = settings.enableLogs
+                    showLogs = settings.enableLogs,
+                    borderAlpha = borderAlpha
                 )
 
                 Box(
@@ -135,16 +179,35 @@ fun TvMainScreen() {
                     when (currentTab) {
                         TvTab.HOME -> TvHomeScreen(
                             requestInitialFocus = isFirstLaunch,
-                            onFocusRequested = { isFirstLaunch = false }
+                            onFocusRequested = { isFirstLaunch = false },
+                            borderAlpha = borderAlpha
                         )
                         TvTab.LOGS -> TvLogsScreen(
                             requestInitialFocus = isFirstLaunch,
-                            onFocusRequested = { isFirstLaunch = false }
+                            onFocusRequested = { isFirstLaunch = false },
+                            borderAlpha = borderAlpha
                         )
                     }
                 }
             }
 
+            // GÜNCELLEME BİLDİRİMİ (SAĞ ÜST)
+            AnimatedVisibility(
+                visible = showUpdateNotification,
+                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 32.dp, end = 32.dp)
+                    .zIndex(10f) // Z-Index hatası giderildi (Import eklendi)
+            ) {
+                TvUpdateNotification(
+                    version = updateInfo?.version ?: "",
+                    borderAlpha = borderAlpha
+                )
+            }
+
+            // SETTINGS DRAWER OVERLAY
             AnimatedVisibility(
                 visible = isSettingsOpen,
                 enter = fadeIn(),
@@ -153,7 +216,7 @@ fun TvMainScreen() {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.6f))
+                        .background(Color.Black.copy(alpha = 0.7f))
                         .clickable(enabled = false) {}
                 )
             }
@@ -164,7 +227,51 @@ fun TvMainScreen() {
                 exit = slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300, easing = EaseInQuart)),
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
-                TvSettingsDrawer(onClose = { isSettingsOpen = false })
+                TvSettingsDrawer(
+                    onClose = { isSettingsOpen = false },
+                    borderAlpha = borderAlpha
+                )
+            }
+        }
+    }
+}
+
+// --- YENİ GÜNCELLEME BİLDİRİMİ ---
+@Composable
+fun TvUpdateNotification(version: String, borderAlpha: Float) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        colors = NonInteractiveSurfaceDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        border = Border(
+            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = borderAlpha))
+        ),
+        modifier = Modifier.width(350.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.SystemUpdate,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(
+                    text = stringResource(R.string.new_version_available),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "v$version • Ayarlar > Hakkında",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
             }
         }
     }
@@ -175,7 +282,8 @@ fun TvTopNavBar(
     currentTab: TvTab,
     onTabSelected: (TvTab) -> Unit,
     onSettingsClick: () -> Unit,
-    showLogs: Boolean
+    showLogs: Boolean,
+    borderAlpha: Float
 ) {
     Row(
         modifier = Modifier
@@ -208,19 +316,21 @@ fun TvTopNavBar(
             TvNavTabItem(
                 label = stringResource(R.string.nav_home),
                 isSelected = currentTab == TvTab.HOME,
-                onClick = { onTabSelected(TvTab.HOME) }
+                onClick = { onTabSelected(TvTab.HOME) },
+                borderAlpha = borderAlpha
             )
             
             if (showLogs) {
                 TvNavTabItem(
                     label = stringResource(R.string.nav_logs),
                     isSelected = currentTab == TvTab.LOGS,
-                    onClick = { onTabSelected(TvTab.LOGS) }
+                    onClick = { onTabSelected(TvTab.LOGS) },
+                    borderAlpha = borderAlpha
                 )
             }
         }
 
-        TvSettingsButton(onClick = onSettingsClick)
+        TvSettingsButton(onClick = onSettingsClick, borderAlpha = borderAlpha)
     }
 }
 
@@ -228,13 +338,16 @@ fun TvTopNavBar(
 fun TvNavTabItem(
     label: String,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    borderAlpha: Float
 ) {
     var isFocused by remember { mutableStateOf(false) }
-
-    // Üzerine gelince otomatik seçim (Eski haline getirildi)
-    LaunchedEffect(isFocused) { 
-        if (isFocused && !isSelected) onClick() 
+    
+    LaunchedEffect(isFocused) {
+        if (isFocused && !isSelected) {
+            delay(50) 
+            onClick()
+        }
     }
 
     Surface(
@@ -242,13 +355,16 @@ fun TvNavTabItem(
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(50)),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
             focusedContainerColor = MaterialTheme.colorScheme.primary,
             contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
             focusedContentColor = MaterialTheme.colorScheme.onPrimary
         ),
-        border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border.None),
-        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
+        border = ClickableSurfaceDefaults.border(
+            border = Border.None,
+            focusedBorder = Border(BorderStroke(2.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = borderAlpha)))
+        ),
+        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
         modifier = Modifier.onFocusChanged { isFocused = it.isFocused }
     ) {
         Text(
@@ -261,12 +377,14 @@ fun TvNavTabItem(
 }
 
 @Composable
-fun TvSettingsButton(onClick: () -> Unit) {
+fun TvSettingsButton(onClick: () -> Unit, borderAlpha: Float) {
     var isFocused by remember { mutableStateOf(false) }
     
-    // Üzerine gelince otomatik açma (Eski haline getirildi)
     LaunchedEffect(isFocused) {
-        if (isFocused) onClick()
+        if (isFocused) {
+            delay(100)
+            onClick()
+        }
     }
 
     Surface(
@@ -275,13 +393,18 @@ fun TvSettingsButton(onClick: () -> Unit) {
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            focusedContainerColor = MaterialTheme.colorScheme.primary,
+            focusedContainerColor = MaterialTheme.colorScheme.inverseSurface,
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            focusedContentColor = MaterialTheme.colorScheme.onPrimary
+            focusedContentColor = MaterialTheme.colorScheme.inverseOnSurface
         ),
-        border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border.None),
-        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
-        modifier = Modifier.size(48.dp).onFocusChanged { isFocused = it.isFocused }
+        border = ClickableSurfaceDefaults.border(
+            border = Border.None,
+            focusedBorder = Border(BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = borderAlpha)))
+        ),
+        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
+        modifier = Modifier
+            .size(48.dp)
+            .onFocusChanged { isFocused = it.isFocused }
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
             Icon(Icons.Default.Settings, stringResource(R.string.cd_settings), Modifier.size(24.dp))
@@ -292,12 +415,14 @@ fun TvSettingsButton(onClick: () -> Unit) {
 @Composable
 fun TvHomeScreen(
     requestInitialFocus: Boolean = false,
-    onFocusRequested: () -> Unit = {}
+    onFocusRequested: () -> Unit = {},
+    borderAlpha: Float
 ) {
     val context = LocalContext.current
     var vpnState by remember { mutableStateOf(VpnState.DISCONNECTED) }
     val stats by BypassVpnService.stats.collectAsState()
     val connectButtonFocus = remember { FocusRequester() }
+    var isConnectFocused by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         BypassVpnService.isRunning.collect { vpnState = if (it) VpnState.CONNECTED else VpnState.DISCONNECTED }
@@ -317,102 +442,101 @@ fun TvHomeScreen(
         }
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "connectGlow")
-    val borderAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(animation = tween(2000, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
-        label = "connectBorderAlpha"
-    )
-
     val buttonColor = when (vpnState) {
         VpnState.CONNECTED -> VpnConnected
         VpnState.CONNECTING -> VpnConnecting
         else -> MaterialTheme.colorScheme.primary
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = when (vpnState) {
-                    VpnState.CONNECTED -> stringResource(R.string.status_connected)
-                    VpnState.CONNECTING -> stringResource(R.string.status_connecting)
-                    else -> stringResource(R.string.status_disconnected)
-                },
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Bold,
-                color = if (vpnState == VpnState.CONNECTED) VpnConnected else MaterialTheme.colorScheme.onSurface
-            )
+    // DÜZELTME: Kapsam Hatasını Giderme
+    // Artık Box yerine Column kullanıyoruz ve AnimatedVisibility'yi doğrudan Column içine koyuyoruz.
+    // Box Wrapper kaldırıldı.
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Üst boşluk (Esnek)
+        Spacer(modifier = Modifier.weight(1f))
 
-            Spacer(modifier = Modifier.height(48.dp))
+        Text(
+            text = when (vpnState) {
+                VpnState.CONNECTED -> stringResource(R.string.status_connected)
+                VpnState.CONNECTING -> stringResource(R.string.status_connecting)
+                else -> stringResource(R.string.status_disconnected)
+            },
+            style = MaterialTheme.typography.displayMedium,
+            fontWeight = FontWeight.Bold,
+            color = if (vpnState == VpnState.CONNECTED) VpnConnected else MaterialTheme.colorScheme.onSurface
+        )
 
-            // BUTON BOYUTU KÜÇÜLTÜLDÜ (160dp)
-            Surface(
-                onClick = {
-                    when (vpnState) {
-                        VpnState.DISCONNECTED, VpnState.ERROR -> {
-                            val intent = VpnService.prepare(context)
-                            if (intent != null) vpnLauncher.launch(intent)
-                            else { vpnState = VpnState.CONNECTING; startVpnService(context) }
-                        }
-                        else -> { stopVpnService(context); vpnState = VpnState.DISCONNECTED }
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Connect Button
+        Surface(
+            onClick = {
+                when (vpnState) {
+                    VpnState.DISCONNECTED, VpnState.ERROR -> {
+                        val intent = VpnService.prepare(context)
+                        if (intent != null) vpnLauncher.launch(intent)
+                        else { vpnState = VpnState.CONNECTING; startVpnService(context) }
                     }
-                },
-                shape = ClickableSurfaceDefaults.shape(CircleShape),
-                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
-                colors = ClickableSurfaceDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = if (vpnState == VpnState.CONNECTED) VpnConnected else MaterialTheme.colorScheme.onSurfaceVariant,
-                    focusedContentColor = buttonColor
-                ),
-                border = ClickableSurfaceDefaults.border(
-                    border = Border(BorderStroke(2.dp, MaterialTheme.colorScheme.surfaceVariant)),
-                    focusedBorder = Border(BorderStroke(4.dp, Color.White.copy(alpha = borderAlpha)))
-                ),
-                glow = ClickableSurfaceDefaults.glow(
-                    glow = Glow.None,
-                    focusedGlow = Glow(elevation = 16.dp, elevationColor = buttonColor)
-                ),
-                modifier = Modifier.size(160.dp).focusRequester(connectButtonFocus)
-            ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Icon(
-                        imageVector = when (vpnState) {
-                            VpnState.CONNECTED -> Icons.Default.Shield
-                            VpnState.CONNECTING -> Icons.Default.Sync
-                            else -> Icons.Default.PowerSettingsNew
-                        },
-                        contentDescription = null,
-                        modifier = Modifier.size(70.dp)
-                    )
+                    else -> { stopVpnService(context); vpnState = VpnState.DISCONNECTED }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            AnimatedVisibility(
-                visible = vpnState == VpnState.CONNECTED,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    TvStatCard(Icons.Default.Download, stringResource(R.string.label_download), formatBytes(stats.bytesIn))
-                    TvStatCard(Icons.Default.Upload, stringResource(R.string.label_upload), formatBytes(stats.bytesOut))
-                    TvStatCard(Icons.Default.Speed, stringResource(R.string.label_packets), "${stats.packetsIn + stats.packetsOut}")
-                }
+            },
+            shape = ClickableSurfaceDefaults.shape(CircleShape),
+            scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
+            colors = ClickableSurfaceDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                contentColor = if (vpnState == VpnState.CONNECTED) VpnConnected else MaterialTheme.colorScheme.onSurfaceVariant,
+                focusedContentColor = buttonColor
+            ),
+            border = ClickableSurfaceDefaults.border(
+                border = Border(BorderStroke(4.dp, MaterialTheme.colorScheme.surfaceVariant)),
+                focusedBorder = Border(BorderStroke(6.dp, buttonColor.copy(alpha = if (isConnectFocused) borderAlpha else 1f)))
+            ),
+            glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
+            modifier = Modifier
+                .size(160.dp)
+                .focusRequester(connectButtonFocus)
+                .onFocusChanged { isConnectFocused = it.isFocused }
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Icon(
+                    imageVector = when (vpnState) {
+                        VpnState.CONNECTED -> Icons.Default.Shield
+                        VpnState.CONNECTING -> Icons.Default.Sync
+                        else -> Icons.Default.PowerSettingsNew
+                    },
+                    contentDescription = null,
+                    modifier = Modifier.size(70.dp)
+                )
             }
         }
 
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // DÜZELTME: AnimatedVisibility artık Box içinde değil, doğrudan Column içinde.
+        // Hata veren "implicit receiver" sorunu çözüldü.
+        AnimatedVisibility(
+            visible = vpnState == VpnState.CONNECTED,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+            modifier = Modifier.height(100.dp) // Yüksekliği buraya verdik
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                TvStatCard(Icons.Default.Download, stringResource(R.string.label_download), formatBytes(stats.bytesIn))
+                TvStatCard(Icons.Default.Upload, stringResource(R.string.label_upload), formatBytes(stats.bytesOut))
+                TvStatCard(Icons.Default.Speed, stringResource(R.string.label_packets), "${stats.packetsIn + stats.packetsOut}")
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(0.5f))
+        
         if (vpnState != VpnState.CONNECTED) {
-            TvInfoCard(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp)
-            )
+            TvInfoCard(modifier = Modifier.padding(bottom = 32.dp))
+        } else {
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
@@ -478,11 +602,13 @@ fun TvStatCard(icon: androidx.compose.ui.graphics.vector.ImageVector, label: Str
 @Composable
 fun TvLogsScreen(
     requestInitialFocus: Boolean = false,
-    onFocusRequested: () -> Unit = {}
+    onFocusRequested: () -> Unit = {},
+    borderAlpha: Float
 ) {
     val logs by LogManager.logs.collectAsState()
     val listState = rememberLazyListState()
     val clearFocus = remember { FocusRequester() }
+    var isClearFocused by remember { mutableStateOf(false) }
     
     LaunchedEffect(requestInitialFocus) {
         if (requestInitialFocus) {
@@ -507,19 +633,24 @@ fun TvLogsScreen(
                 shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
                 scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
                 colors = ClickableSurfaceDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    containerColor = if (isClearFocused) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.errorContainer,
                     focusedContainerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.error,
+                    contentColor = if (isClearFocused) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.error,
                     focusedContentColor = MaterialTheme.colorScheme.onError
                 ),
-                border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, MaterialTheme.colorScheme.onError))),
-                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.error)),
-                modifier = Modifier.focusRequester(clearFocus)
+                border = ClickableSurfaceDefaults.border(
+                    border = Border.None, 
+                    focusedBorder = Border(BorderStroke(2.dp, MaterialTheme.colorScheme.onError.copy(alpha = borderAlpha)))
+                ),
+                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
+                modifier = Modifier
+                    .focusRequester(clearFocus)
+                    .onFocusChanged { isClearFocused = it.isFocused }
             ) {
-                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Delete, null, Modifier.size(16.dp))
+                Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Delete, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.cd_clear), style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.cd_clear), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -558,18 +689,12 @@ fun TvLogsScreen(
 }
 
 @Composable
-fun TvSettingsDrawer(onClose: () -> Unit) {
+fun TvSettingsDrawer(onClose: () -> Unit, borderAlpha: Float) {
     var currentPage by remember { mutableStateOf(SettingsPage.ROOT) }
     val firstItemFocus = remember { FocusRequester() }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "drawerGlow")
-    val borderAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(animation = tween(2000, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
-        label = "drawerBorderAlpha"
-    )
-
     LaunchedEffect(currentPage) {
+        delay(100)
         try { firstItemFocus.requestFocus() } catch(_: Exception){}
     }
     
@@ -581,29 +706,35 @@ fun TvSettingsDrawer(onClose: () -> Unit) {
         modifier = Modifier
             .fillMaxHeight()
             .width(450.dp)
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(32.dp)
+            .onPreviewKeyEvent { 
+                if (it.key == Key.DirectionLeft && it.type == KeyEventType.KeyDown) {
+                    return@onPreviewKeyEvent true 
+                }
+                false
+            }
             .clickable(enabled = false) {}
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp)) {
             if (currentPage != SettingsPage.ROOT) {
+                var isBackFocused by remember { mutableStateOf(false) }
                 Surface(
                     onClick = { currentPage = SettingsPage.ROOT },
                     shape = ClickableSurfaceDefaults.shape(CircleShape),
                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
                     colors = ClickableSurfaceDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        focusedContainerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onSurface,
-                        focusedContentColor = MaterialTheme.colorScheme.primary
+                        focusedContentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     border = ClickableSurfaceDefaults.border(
                         border = Border.None,
-                        focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))
+                        focusedBorder = Border(BorderStroke(2.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = borderAlpha)))
                     ),
-                    // GERİ BUTONU BOYUTU KÜÇÜLTÜLDÜ (32dp)
-                    glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
-                    modifier = Modifier.size(32.dp)
+                    glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
+                    modifier = Modifier.size(32.dp).onFocusChanged { isBackFocused = it.isFocused }
                 ) {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, Modifier.size(18.dp))
@@ -668,22 +799,24 @@ fun TvSettingsRootList(onNavigate: (SettingsPage) -> Unit, firstItemFocus: Focus
 
 @Composable
 fun TvSettingsMenuItem(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit, borderAlpha: Float, modifier: Modifier = Modifier) {
+    var isFocused by remember { mutableStateOf(false) }
+    
     Surface(
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = MaterialTheme.colorScheme.surface,
+            focusedContainerColor = MaterialTheme.colorScheme.primary, // Odaklanınca Primary Renk (Dolu)
             contentColor = MaterialTheme.colorScheme.onSurface,
-            focusedContentColor = MaterialTheme.colorScheme.primary
+            focusedContentColor = MaterialTheme.colorScheme.onPrimary // Odaklanınca yazı rengi
         ),
         border = ClickableSurfaceDefaults.border(
             border = Border.None, 
-            focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))
+            focusedBorder = Border(BorderStroke(3.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = borderAlpha)))
         ),
-        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
-        modifier = modifier.fillMaxWidth()
+        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
+        modifier = modifier.fillMaxWidth().onFocusChanged { isFocused = it.isFocused }
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, null, Modifier.size(24.dp))
@@ -696,31 +829,27 @@ fun TvSettingsMenuItem(title: String, icon: androidx.compose.ui.graphics.vector.
 
 @Composable
 fun TvSwitchRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit, borderAlpha: Float, modifier: Modifier = Modifier) {
+    var isFocused by remember { mutableStateOf(false) }
     Surface(
         onClick = { onCheckedChange(!checked) },
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = MaterialTheme.colorScheme.surface,
+            focusedContainerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onSurface,
-            focusedContentColor = MaterialTheme.colorScheme.primary
+            focusedContentColor = MaterialTheme.colorScheme.onPrimary
         ),
-        border = ClickableSurfaceDefaults.border(
-            border = Border.None, 
-            focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))
-        ),
-        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
-        modifier = modifier.fillMaxWidth()
+        border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(3.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = borderAlpha)))),
+        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
+        modifier = modifier.fillMaxWidth().onFocusChanged { isFocused = it.isFocused }
     ) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(label, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             Spacer(Modifier.width(16.dp))
             Switch(checked = checked, onCheckedChange = null, colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.onPrimary, 
-                checkedTrackColor = MaterialTheme.colorScheme.primary, 
-                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant, 
-                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                checkedThumbColor = if(isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary, 
+                checkedTrackColor = if(isFocused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
             ))
         }
     }
@@ -733,16 +862,13 @@ fun TvCycleButton(label: String, currentValue: String, onClick: () -> Unit, bord
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant, 
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, 
+            containerColor = MaterialTheme.colorScheme.surface, 
+            focusedContainerColor = MaterialTheme.colorScheme.primary, 
             contentColor = MaterialTheme.colorScheme.onSurface, 
-            focusedContentColor = MaterialTheme.colorScheme.primary
+            focusedContentColor = MaterialTheme.colorScheme.onPrimary
         ),
-        border = ClickableSurfaceDefaults.border(
-            border = Border.None, 
-            focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))
-        ),
-        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
+        border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(3.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = borderAlpha)))),
+        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
         modifier = modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -760,46 +886,61 @@ fun TvNumberRow(label: String, value: Int, range: IntRange, unit: String = "", b
     Row(modifier = modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(label, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Surface(
-                onClick = { if (value > range.first) onValueChange(value - 1) },
-                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
-                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
-                colors = ClickableSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant, focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurface, focusedContentColor = MaterialTheme.colorScheme.primary),
-                border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))),
-                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
-                modifier = Modifier.size(40.dp)
-            ) { Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) { Icon(Icons.Default.Remove, null, Modifier.size(20.dp)) } }
-            
-            Box(modifier = Modifier.widthIn(min = 70.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.primaryContainer).padding(horizontal = 12.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
-                Text(if (unit.isNotEmpty()) "$value $unit" else "$value", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            TvMiniButton(onClick = { if (value > range.first) onValueChange(value - 1) }, icon = Icons.Default.Remove, borderAlpha = borderAlpha)
+            Box(modifier = Modifier.widthIn(min = 70.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surface).padding(horizontal = 12.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+                Text(if (unit.isNotEmpty()) "$value $unit" else "$value", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
-            
-            Surface(
-                onClick = { if (value < range.last) onValueChange(value + 1) },
-                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
-                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
-                colors = ClickableSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant, focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurface, focusedContentColor = MaterialTheme.colorScheme.primary),
-                border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))),
-                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
-                modifier = Modifier.size(40.dp)
-            ) { Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) { Icon(Icons.Default.Add, null, Modifier.size(20.dp)) } }
+            TvMiniButton(onClick = { if (value < range.last) onValueChange(value + 1) }, icon = Icons.Default.Add, borderAlpha = borderAlpha)
         }
     }
 }
 
 @Composable
-fun TvClickableItem(title: String, onClick: () -> Unit, borderAlpha: Float, modifier: Modifier = Modifier, description: String? = null, icon: androidx.compose.ui.graphics.vector.ImageVector? = null) {
+fun TvMiniButton(onClick: () -> Unit, icon: ImageVector, borderAlpha: Float) {
+    Surface(
+        onClick = onClick,
+        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
+        colors = ClickableSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface, focusedContainerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onSurface, focusedContentColor = MaterialTheme.colorScheme.onPrimary),
+        border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = borderAlpha)))),
+        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
+        modifier = Modifier.size(40.dp)
+    ) { Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) { Icon(icon, null, Modifier.size(20.dp)) } }
+}
+
+@Composable
+fun TvClickableItem(
+    title: String, 
+    onClick: () -> Unit, 
+    borderAlpha: Float, 
+    modifier: Modifier = Modifier, 
+    description: String? = null, 
+    iconVector: ImageVector? = null,
+    iconPainter: Painter? = null
+) {
     Surface(
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
-        colors = ClickableSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant, focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurface, focusedContentColor = MaterialTheme.colorScheme.primary),
-        border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))),
-        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.surface, 
+            focusedContainerColor = MaterialTheme.colorScheme.primary, 
+            contentColor = MaterialTheme.colorScheme.onSurface, 
+            focusedContentColor = MaterialTheme.colorScheme.onPrimary
+        ),
+        border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(3.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = borderAlpha)))),
+        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
         modifier = modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (icon != null) { Icon(icon, null, Modifier.size(24.dp)); Spacer(Modifier.width(16.dp)) }
+            if (iconPainter != null) {
+                Image(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp), colorFilter = ColorFilter.tint(LocalContentColor.current))
+                Spacer(Modifier.width(16.dp))
+            } else if (iconVector != null) {
+                Icon(iconVector, null, Modifier.size(24.dp))
+                Spacer(Modifier.width(16.dp))
+            }
+            
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
                 if (description != null) Text(description, style = MaterialTheme.typography.bodySmall, color = LocalContentColor.current.copy(alpha = 0.7f))
@@ -808,6 +949,9 @@ fun TvClickableItem(title: String, onClick: () -> Unit, borderAlpha: Float, modi
         }
     }
 }
+
+// ... (BypassSettings, AdvancedSettings, NetworkSettings vb. yukarıdaki TvSwitchRow/TvCycleButton/TvNumberRow ile aynı)
+// Sadece çağırırken borderAlpha parametresini geçirmeyi unutma. Kodun geri kalanı aynı mantıkla güncellendi.
 
 @Composable
 fun TvBypassSettings(firstItemFocus: FocusRequester, borderAlpha: Float) {
@@ -878,7 +1022,7 @@ fun TvExceptionsSettings(onNavigateToWhitelist: () -> Unit, firstItemFocus: Focu
     LaunchedEffect(Unit) { repository.settings.collect { settings = it } }
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item { TvClickableItem(stringResource(R.string.whitelist_title), onNavigateToWhitelist, borderAlpha, Modifier.focusRequester(firstItemFocus), "${settings.whitelist.size} site", Icons.Default.List) }
+        item { TvClickableItem(stringResource(R.string.whitelist_title), onNavigateToWhitelist, borderAlpha, Modifier.focusRequester(firstItemFocus), "${settings.whitelist.size} site", iconVector = Icons.Default.List) }
     }
 }
 
@@ -894,16 +1038,21 @@ fun TvSystemSettings(onNavigateToLanguage: () -> Unit, firstItemFocus: FocusRequ
     LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item { TvSwitchRow(stringResource(R.string.sys_logging), settings.enableLogs, { update(settings.copy(enableLogs = it)) }, borderAlpha, Modifier.focusRequester(firstItemFocus)) }
         item { TvCycleButton(stringResource(R.string.theme_title), when(settings.appTheme) { AppTheme.SYSTEM -> stringResource(R.string.theme_system); AppTheme.AMOLED -> stringResource(R.string.theme_amoled); AppTheme.ANIME -> stringResource(R.string.theme_anime) }, { val t = AppTheme.values(); update(settings.copy(appTheme = t[(settings.appTheme.ordinal + 1) % t.size])) }, borderAlpha) }
-        item { TvClickableItem(stringResource(R.string.lang_title), onNavigateToLanguage, borderAlpha, icon = Icons.Default.Language) }
+        item { TvClickableItem(stringResource(R.string.lang_title), onNavigateToLanguage, borderAlpha, iconVector = Icons.Default.Language) }
         item {
             Spacer(Modifier.height(16.dp))
             Surface(
                 onClick = { update(DpiSettings()) },
                 shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
                 scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
-                colors = ClickableSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.errorContainer, focusedContainerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.error, focusedContentColor = MaterialTheme.colorScheme.error),
-                border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, MaterialTheme.colorScheme.error.copy(alpha = borderAlpha)))),
-                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.error)),
+                colors = ClickableSurfaceDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    focusedContainerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.error,
+                    focusedContentColor = MaterialTheme.colorScheme.onError
+                ),
+                border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(3.dp, MaterialTheme.colorScheme.error.copy(alpha = borderAlpha)))),
+                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
@@ -926,9 +1075,9 @@ fun TvAboutSettings(onNavigateToUpdate: () -> Unit, firstItemFocus: FocusRequest
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item { Text("${stringResource(R.string.app_name)} v$versionName", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        item { TvClickableItem("Anonimbiri", { uriHandler.openUri("https://github.com/anonimbiri-IsBack") }, borderAlpha, Modifier.focusRequester(firstItemFocus), stringResource(R.string.about_dev), Icons.Default.Person) }
-        item { TvClickableItem(stringResource(R.string.about_repo_title), { uriHandler.openUri("https://github.com/GameSketchers/RemoveDPI") }, borderAlpha, description = stringResource(R.string.about_repo_desc), icon = Icons.Default.Code) }
-        item { TvClickableItem(stringResource(R.string.about_update_title), onNavigateToUpdate, borderAlpha, description = stringResource(R.string.about_update_desc), icon = Icons.Default.Update) }
+        item { TvClickableItem("Anonimbiri", { uriHandler.openUri("https://github.com/anonimbiri-IsBack") }, borderAlpha, Modifier.focusRequester(firstItemFocus), stringResource(R.string.about_dev), iconPainter = painterResource(id = R.mipmap.ic_removedpi_monochrome)) }
+        item { TvClickableItem(stringResource(R.string.about_repo_title), { uriHandler.openUri("https://github.com/GameSketchers/RemoveDPI") }, borderAlpha, description = stringResource(R.string.about_repo_desc), iconPainter = painterResource(id = R.drawable.ic_github)) }
+        item { TvClickableItem(stringResource(R.string.about_update_title), onNavigateToUpdate, borderAlpha, description = stringResource(R.string.about_update_desc), iconVector = Icons.Default.Update) }
     }
 }
 
@@ -944,7 +1093,6 @@ fun TvWhitelistScreen(firstItemFocus: FocusRequester, borderAlpha: Float) {
 
     LaunchedEffect(Unit) { repository.settings.collect { settings = it } }
     
-    // Ekleme modu açıldığında inputa odaklan
     LaunchedEffect(isAddingMode) {
         if (isAddingMode) {
             delay(100)
@@ -994,18 +1142,18 @@ fun TvWhitelistScreen(firstItemFocus: FocusRequester, borderAlpha: Float) {
                 }),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    // Burada outline yerine onSurface kullanıldı (Düzeltme)
                     unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    cursorColor = MaterialTheme.colorScheme.primary
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                    unfocusedContainerColor = Color.Transparent
                 )
             )
             
             Spacer(Modifier.height(32.dp))
             
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                // TV Button kullanılıyor
                 Button(
                     onClick = { isAddingMode = false },
                     colors = ButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -1033,15 +1181,15 @@ fun TvWhitelistScreen(firstItemFocus: FocusRequester, borderAlpha: Float) {
                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        focusedContainerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        focusedContentColor = MaterialTheme.colorScheme.primary
+                        focusedContentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     border = ClickableSurfaceDefaults.border(
                         border = Border.None,
-                        focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))
+                        focusedBorder = Border(BorderStroke(3.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = borderAlpha)))
                     ),
-                    glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
+                    glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
                     modifier = Modifier.fillMaxWidth().focusRequester(firstItemFocus)
                 ) {
                     Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
@@ -1071,7 +1219,7 @@ fun TvWhitelistScreen(firstItemFocus: FocusRequester, borderAlpha: Float) {
 fun TvWhitelistItem(domain: String, onDelete: () -> Unit, borderAlpha: Float) {
     Surface(
         shape = RoundedCornerShape(8.dp), 
-        colors = NonInteractiveSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant), 
+        colors = NonInteractiveSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface), 
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1079,52 +1227,22 @@ fun TvWhitelistItem(domain: String, onDelete: () -> Unit, borderAlpha: Float) {
             Spacer(Modifier.width(16.dp))
             Text(domain, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
             
-            Surface(
-                onClick = onDelete,
-                shape = ClickableSurfaceDefaults.shape(CircleShape),
-                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
-                colors = ClickableSurfaceDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    focusedContainerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.error,
-                    focusedContentColor = MaterialTheme.colorScheme.onError
-                ),
-                border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))),
-                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.error)),
-                modifier = Modifier.size(40.dp)
-            ) {
-                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) { Icon(Icons.Default.Delete, null, Modifier.size(20.dp)) }
-            }
+            TvMiniButton(onClick = onDelete, icon = Icons.Default.Delete, borderAlpha = borderAlpha)
         }
     }
 }
 
 @Composable
 fun AsyncFaviconTv(domain: String, modifier: Modifier = Modifier) {
-    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-    
-    LaunchedEffect(domain) {
-        withContext(Dispatchers.IO) {
-            val sources = listOf("https://www.google.com/s2/favicons?sz=64&domain_url=$domain", "https://icons.duckduckgo.com/ip3/$domain.ico")
-            for (url in sources) {
-                try {
-                    val conn = URL(url).openConnection() as HttpURLConnection
-                    conn.connectTimeout = 1000; conn.connect()
-                    if (conn.responseCode == 200) {
-                        bitmap = BitmapFactory.decodeStream(conn.inputStream)
-                        if (bitmap != null) break
-                    }
-                } catch(e: Exception){}
-            }
-        }
-    }
-
+    // COIL OPTIMIZASYONU
     Box(modifier = modifier.clip(RoundedCornerShape(8.dp)).background(Color.White), contentAlignment = Alignment.Center) {
-        if (bitmap != null) {
-            Image(bitmap = bitmap!!.asImageBitmap(), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
-        } else {
-            Text(domain.take(1).uppercase(), color = Color.Black, fontWeight = FontWeight.Bold)
-        }
+        AsyncImage(
+            model = "https://www.google.com/s2/favicons?sz=64&domain_url=$domain",
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit,
+            error = painterResource(R.mipmap.ic_removedpi_monochrome) 
+        )
     }
 }
 
@@ -1160,16 +1278,16 @@ fun TvLanguageScreen(firstItemFocus: FocusRequester, borderAlpha: Float) {
                 shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
                 scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
                 colors = ClickableSurfaceDefaults.colors(
-                    containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                    focusedContainerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary, // Odaklanınca renk doluyor
                     contentColor = MaterialTheme.colorScheme.onSurface,
-                    focusedContentColor = MaterialTheme.colorScheme.primary
+                    focusedContentColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onPrimary
                 ),
                 border = ClickableSurfaceDefaults.border(
                     border = if (isSelected) Border(BorderStroke(2.dp, MaterialTheme.colorScheme.primary)) else Border.None,
-                    focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))
+                    focusedBorder = Border(BorderStroke(3.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = borderAlpha)))
                 ),
-                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
+                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
                 modifier = Modifier.fillMaxWidth().then(if (index == 0) Modifier.focusRequester(firstItemFocus) else Modifier)
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1226,14 +1344,22 @@ fun TvUpdateScreen(firstItemFocus: FocusRequester, borderAlpha: Float) {
                 onClick = { checking = true; scope.launch { updateInfo = UpdateManager.checkForUpdates(context); checking = false } },
                 shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
                 scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f),
-                colors = ClickableSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant, focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurface, focusedContentColor = MaterialTheme.colorScheme.primary),
-                border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))),
-                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)),
+                colors = ClickableSurfaceDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.primary, // Odaklanınca doluyor
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                border = ClickableSurfaceDefaults.border(
+                    border = Border.None,
+                    focusedBorder = Border(BorderStroke(3.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = borderAlpha)))
+                ),
+                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None),
                 modifier = Modifier.fillMaxWidth().height(56.dp).focusRequester(firstItemFocus)
             ) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                     Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        if(checking) androidx.compose.material3.CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 2.dp)
+                        if(checking) androidx.compose.material3.CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
                         else Icon(Icons.Default.Refresh, null, Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
                         Text(stringResource(R.string.btn_check_updates), style = MaterialTheme.typography.titleMedium)
@@ -1259,9 +1385,17 @@ fun TvUpdateScreen(firstItemFocus: FocusRequester, borderAlpha: Float) {
                             onClick = { installApk(downloadState.file!!) }, 
                             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)), 
                             scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f), 
-                            colors = ClickableSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.primaryContainer, focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer, focusedContentColor = MaterialTheme.colorScheme.primary), 
-                            border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))), 
-                            glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)), 
+                            colors = ClickableSurfaceDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                focusedContainerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                focusedContentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            border = ClickableSurfaceDefaults.border(
+                                border = Border.None,
+                                focusedBorder = Border(BorderStroke(3.dp, MaterialTheme.colorScheme.primary.copy(alpha = borderAlpha)))
+                            ),
+                            glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None), 
                             modifier = Modifier.fillMaxWidth().height(56.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) { 
@@ -1281,9 +1415,15 @@ fun TvUpdateScreen(firstItemFocus: FocusRequester, borderAlpha: Float) {
                                 onClick = { downloadState = TvDownloadState() }, 
                                 shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)), 
                                 scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f), 
-                                colors = ClickableSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant, focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant), 
-                                border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))), 
-                                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)), 
+                                colors = ClickableSurfaceDefaults.colors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    focusedContainerColor = MaterialTheme.colorScheme.inverseSurface
+                                ),
+                                border = ClickableSurfaceDefaults.border(
+                                    border = Border.None,
+                                    focusedBorder = Border(BorderStroke(3.dp, MaterialTheme.colorScheme.primary.copy(alpha = borderAlpha)))
+                                ),
+                                glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None), 
                                 modifier = Modifier.width(150.dp).height(48.dp)
                             ) { 
                                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) { Text(stringResource(R.string.btn_retry)) } 
@@ -1295,9 +1435,17 @@ fun TvUpdateScreen(firstItemFocus: FocusRequester, borderAlpha: Float) {
                             onClick = { val url = if (isDebug) updateInfo!!.debugApkUrl else updateInfo!!.releaseApkUrl; if (url.isNotBlank()) scope.launch { downloadApk(context, url, updateInfo!!.version) { downloadState = it } } }, 
                             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)), 
                             scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f), 
-                            colors = ClickableSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.primaryContainer, focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer, focusedContentColor = MaterialTheme.colorScheme.primary), 
-                            border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))), 
-                            glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)), 
+                            colors = ClickableSurfaceDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                focusedContainerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                focusedContentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            border = ClickableSurfaceDefaults.border(
+                                border = Border.None,
+                                focusedBorder = Border(BorderStroke(3.dp, MaterialTheme.colorScheme.primary.copy(alpha = borderAlpha)))
+                            ),
+                            glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None), 
                             modifier = Modifier.fillMaxWidth().height(56.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) { 
@@ -1340,6 +1488,7 @@ fun TvReleaseCard(title: String?, releaseInfo: ReleaseInfo, isDebug: Boolean, is
     val scope = rememberCoroutineScope()
     val releaseLines = remember(releaseInfo.releaseNotes) { cleanMarkdown(releaseInfo.releaseNotes).split("\n").filter { it.isNotBlank() } }
     val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
 
     Column {
         if (title != null) {
@@ -1350,7 +1499,11 @@ fun TvReleaseCard(title: String?, releaseInfo: ReleaseInfo, isDebug: Boolean, is
             }
         }
         
-        Surface(shape = RoundedCornerShape(16.dp), colors = NonInteractiveSurfaceDefaults.colors(containerColor = if (isHighlighted) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth()) {
+        Surface(
+            shape = RoundedCornerShape(16.dp), 
+            colors = NonInteractiveSurfaceDefaults.colors(containerColor = if (isHighlighted) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface), 
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Column(Modifier.padding(20.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
                     Column(Modifier.weight(1f)) {
@@ -1367,38 +1520,66 @@ fun TvReleaseCard(title: String?, releaseInfo: ReleaseInfo, isDebug: Boolean, is
                 }
                 
                 if (releaseLines.isNotEmpty()) {
-                    Spacer(Modifier.height(16.dp)); androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)); Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(16.dp))
+                    androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    Spacer(Modifier.height(16.dp))
                     
                     Surface(
                         onClick = {}, 
                         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)), 
                         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f), 
-                        colors = ClickableSurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface, focusedContainerColor = MaterialTheme.colorScheme.surface), 
-                        border = ClickableSurfaceDefaults.border(border = Border.None, focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))), 
-                        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow(elevation = 16.dp, elevationColor = MaterialTheme.colorScheme.primary)), 
+                        colors = ClickableSurfaceDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surface, 
+                            focusedContainerColor = MaterialTheme.colorScheme.surface
+                        ), 
+                        border = ClickableSurfaceDefaults.border(
+                            border = Border.None, 
+                            focusedBorder = Border(BorderStroke(2.dp, Color.White.copy(alpha = borderAlpha)))
+                        ), 
+                        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None), 
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(150.dp)
                             .focusRequester(focusRequester)
+                            .onPreviewKeyEvent { event ->
+                                // FIX FOR TV FOCUS TRAP
+                                if (event.type == KeyEventType.KeyDown) {
+                                    if (event.key == Key.DirectionDown) {
+                                        if (!listState.canScrollForward) {
+                                            focusManager.moveFocus(FocusDirection.Down)
+                                            return@onPreviewKeyEvent true
+                                        }
+                                    } else if (event.key == Key.DirectionUp) {
+                                        if (!listState.canScrollBackward) {
+                                            focusManager.moveFocus(FocusDirection.Up)
+                                            return@onPreviewKeyEvent true
+                                        }
+                                    }
+                                }
+                                false
+                            }
                             .onKeyEvent { event ->
                                 if (event.type == KeyEventType.KeyDown) {
                                     when (event.key) {
-                                        Key.DirectionDown -> { scope.launch { listState.animateScrollToItem((listState.firstVisibleItemIndex + 1).coerceAtMost(releaseLines.size - 1)) }; true }
+                                        Key.DirectionDown -> { 
+                                            scope.launch { listState.animateScrollToItem((listState.firstVisibleItemIndex + 1).coerceAtMost(releaseLines.size - 1)) }
+                                            true 
+                                        }
                                         Key.DirectionUp -> { 
-                                            // Listenin başındaysak ve yukarı basılırsa focus'u yukarıdaki elemana sal
-                                            if (listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0) {
-                                                false 
-                                            } else {
-                                                scope.launch { listState.animateScrollToItem((listState.firstVisibleItemIndex - 1).coerceAtLeast(0)) }
-                                                true 
-                                            }
+                                            scope.launch { listState.animateScrollToItem((listState.firstVisibleItemIndex - 1).coerceAtLeast(0)) }
+                                            true 
                                         }
                                         else -> false
                                     }
                                 } else false
                             }
                     ) {
-                        LazyColumn(state = listState, modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp), userScrollEnabled = false) {
+                        LazyColumn(
+                            state = listState, 
+                            modifier = Modifier.padding(12.dp), 
+                            verticalArrangement = Arrangement.spacedBy(6.dp), 
+                            userScrollEnabled = false
+                        ) {
                             items(releaseLines) { line -> TvMarkdownLine(line) }
                         }
                     }
